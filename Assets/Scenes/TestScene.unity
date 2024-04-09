@@ -7285,7 +7285,7 @@ PrefabInstance:
     - target: {fileID: 6360120430882737939, guid: e3402994fb671754a8df23778a76beb4,
         type: 3}
       propertyPath: speed
-      value: 17
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 7783947480164902831, guid: e3402994fb671754a8df23778a76beb4,
         type: 3}
@@ -8799,18 +8799,8 @@ PrefabInstance:
       objectReference: {fileID: 1972520516}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
-      propertyPath: jumpHeight
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: maxAirAccel
-      value: 13
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: fallMultiplier
-      value: 0
+      propertyPath: stepsTilLaunchVelocityReset
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

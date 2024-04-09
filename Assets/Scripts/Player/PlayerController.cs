@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class PlayerController: MonoBehaviour 
 {
-    [SerializeField] Transform playerCam;
     [SerializeField] Transform orientation;
     [SerializeField, Range(0f, 100f)] float maxSpeed = 10f, maxClimbSpeed = 3f;
     [SerializeField, Range(0f, 100f)] float maxAccel = 30f, maxAirAccel = 10f, maxClimbAccel = 12f;
     [SerializeField, Range(0f, 10f)] float jumpHeight = 2f;
-    [SerializeField, Range(0, 5)] int maxAirJumps = 0;
-    [SerializeField] bool airJumpReset;
-    float acceleration;
+    [SerializeField, Range(0, 5)] int maxAirJumps = 1;
+    [SerializeField, Min(0)] int stepsForLaunchSpeed = 12, stepsTilLaunchSpeedReset = 1, stepsTilJumpIgnored = 12;
+    float horizontalSpeed, maxAirSpeed;
+    public float HorizontalSpeed => horizontalSpeed;
     bool jumpTried;
     bool climbTried;
     float jumpSpeed;
     int jumps;
-    int stepsSinceLastGrounded, stepsSinceLastJump;
+    int stepsGrounded, stepsSinceLastGrounded, stepsSinceLastJump, stepsSinceJumpTried;
 
     [SerializeField, Range(0f, 100f)] float maxSnapSpeed = 12f;
     [SerializeField, Min(0f)] float snapProbeDistance = 1f;
@@ -35,6 +35,14 @@ public class PlayerController: MonoBehaviour
     Vector3 velocity, inputDirection, connectedVelocity;
     Vector3 connectionWorldPos, connectionLocalPos;
 
+    void Awake() 
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        body = GetComponent<Rigidbody>();
+        previousWallNormal = Vector3.zero;
+        OnValidate();
+    }
+
     void OnValidate() 
     {
         minGroundDot = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
@@ -43,14 +51,7 @@ public class PlayerController: MonoBehaviour
         minClimbDot = Mathf.Cos(maxClimbAngle * Mathf.Deg2Rad);
         minClimbFacingAwayDot = Mathf.Cos(maxclimbFacingAwayAngle * Mathf.Deg2Rad);
         jumpSpeed = Mathf.Sqrt(-2f * Physics.gravity.y * jumpHeight);
-    }
-
-    void Awake() 
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        body = GetComponent<Rigidbody>();
-        previousWallNormal = Vector3.zero;
-        OnValidate();
+        maxAirSpeed = maxSpeed;
     }
 
     public void SetInputDirection(Vector3 direction) 
@@ -61,17 +62,12 @@ public class PlayerController: MonoBehaviour
     public void TryJump()
     {
         jumpTried = true;
+        stepsSinceJumpTried = 0;
     }
 
     public void Climb(bool tried)
     {
         climbTried = tried;
-    }
-
-    public float HorizontalSpeed()
-    {
-        Vector2 horzVelocity = body.velocity.z * Vector2.up + body.velocity.x * Vector2.right;
-        return horzVelocity.magnitude;
     }
 
     public void PreventSnappingToGround() 
@@ -103,10 +99,13 @@ public class PlayerController: MonoBehaviour
     {
         stepsSinceLastGrounded += 1;
         stepsSinceLastJump += 1;
+        stepsSinceJumpTried += 1;
+
         velocity = body.velocity;
 
         if (Climbing || OnGround || SnapToGround()) {
             stepsSinceLastGrounded = 0;
+            stepsGrounded += 1;
             //the first physics step after a jump still counts as grounded because OnCollision is called after FixedUpdate
             //so FixedUpdate uses collisions from the previous step, which makes the player count as grounded 1 step after a jump
             if (stepsSinceLastJump > 1) 
@@ -119,12 +118,14 @@ public class PlayerController: MonoBehaviour
                 climbNormal.Normalize();
 
             previousWallNormal = Vector3.zero;
+            maxAirSpeed = maxSpeed;
         }
         else {
             if (wallContactCount > 1)
                 wallNormal.Normalize();
 
             groundNormal = Vector3.up;
+            stepsGrounded = 0;
         }
 
         if (connectedBody) {
@@ -155,44 +156,47 @@ public class PlayerController: MonoBehaviour
 
     void EvaluateInputDirection() 
     {
-        float speed;
+        float acceleration, speed;
         Vector3 xAxis = orientation.right;
         Vector3 zAxis = orientation.forward;
         Vector3 normal = groundNormal;
-        bool modifyAccelByDirection = false;
 
         if (Climbing) {
-            speed = maxClimbSpeed;
-            acceleration = maxClimbAccel;
             xAxis = Vector3.Cross(climbNormal, Vector3.up);
             zAxis = Vector3.up;
             normal = climbNormal;
         }
-        else if (OnGround) {
-            speed = maxSpeed;
-            acceleration = maxAccel;
-            if (HorizontalSpeed() > maxSpeed + 0.1f && stepsSinceLastJump < 32)
-                modifyAccelByDirection = true;
-        } 
-        else {
-            speed = maxSpeed;
-            acceleration = maxAirAccel;
-            if (HorizontalSpeed() > maxSpeed + 0.1f)
-                modifyAccelByDirection = true;
-        }
 
         xAxis = ProjectOnPlane(xAxis, normal).normalized;
         zAxis = ProjectOnPlane(zAxis, normal).normalized;
+        horizontalSpeed = ProjectOnPlane(velocity, normal).magnitude;
+
+        if (Climbing) {
+            speed = maxClimbSpeed;
+            acceleration = maxClimbAccel;
+        }   
+        else if (OnGround) {
+            speed = maxSpeed;
+            acceleration = maxAccel;
+        } 
+        else {
+            if (horizontalSpeed > maxAirSpeed && stepsSinceLastJump < stepsForLaunchSpeed) {
+                maxAirSpeed = horizontalSpeed;
+            }
+            else if (horizontalSpeed < maxSpeed) {
+                maxAirSpeed = maxSpeed;
+            }
+            else if (horizontalSpeed < maxAirSpeed) {
+                maxAirSpeed = horizontalSpeed;
+            }
+            speed = maxAirSpeed;
+            acceleration = maxAirAccel;
+        }
 
         Vector3 relativeVelocity = velocity - connectedVelocity;
         float currentX = Vector3.Dot(relativeVelocity, xAxis);
         float currentZ = Vector3.Dot(relativeVelocity, zAxis);
-
-        if (modifyAccelByDirection) {
-            //prevents decelerating to maxSpeed if input direction matches velocity direction
-            acceleration *= 1 - Mathf.Max(0f, Vector3.Dot(inputDirection, new Vector3(currentX, 0, currentZ).normalized));
-        }
-            
+                    
         float maxSpeedChange = acceleration * Time.deltaTime;
         float newX = Mathf.MoveTowards(currentX, inputDirection.x * speed, maxSpeedChange);
         float newZ = Mathf.MoveTowards(currentZ, inputDirection.z * speed, maxSpeedChange);
@@ -227,7 +231,9 @@ public class PlayerController: MonoBehaviour
 
     void Jump() 
     {
-        jumpTried = false;
+        if (stepsSinceJumpTried > stepsTilJumpIgnored)
+            jumpTried = false;
+
         Vector3 jumpDirection;
         if (OnGround) {
             jumpDirection = groundNormal;
@@ -236,8 +242,6 @@ public class PlayerController: MonoBehaviour
             jumpDirection = wallNormal;
             previousWallNormal = wallNormal;
             jumps -= 1;
-            if (airJumpReset)
-                jumps = 0;
         }
         else if (maxAirJumps > 0 && jumps <= maxAirJumps) {
             if (jumps == 0) 
@@ -249,14 +253,15 @@ public class PlayerController: MonoBehaviour
         }
         
         jumpDirection = (jumpDirection + Vector3.up).normalized;
-        stepsSinceLastJump = 0;
-        jumps += 1;
         float currentJumpSpeed = jumpSpeed;
         float alignedSpeed = Vector3.Dot(velocity, jumpDirection);
         if (alignedSpeed > 0f)
             currentJumpSpeed = Mathf.Max(jumpSpeed - alignedSpeed, 0f);
-        
-        velocity += currentJumpSpeed * jumpDirection;    
+        velocity += currentJumpSpeed * jumpDirection;
+
+        stepsSinceLastJump = 0;
+        jumps += 1;
+        jumpTried = false;
     }
 
     void OnCollisionEnter(Collision collision) 
@@ -276,19 +281,21 @@ public class PlayerController: MonoBehaviour
             float minDot = GetMinDot(layer);
             Vector3 normal = collision.GetContact(i).normal;
 
+            //ground contact
             if (normal.y >= minDot) {
                 groundContactCount += 1;
                 groundNormal += normal;
                 connectedBody = collision.rigidbody;
             } 
-            else { 
-                if (normal.y > -0.01f) 
-                {
+            else {
+                //wall contact
+                if (normal.y > -0.01f) {
                     wallContactCount += 1;
                     wallNormal += normal;
                     if (groundContactCount == 0)
                         connectedBody = collision.rigidbody;
                 }
+                //climbing contact
                 if (climbTried && 
                     normal.y >= minClimbDot && 
                     (climbMask & (1 << layer)) != 0 &&

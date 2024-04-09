@@ -41,7 +41,7 @@ public class PlayerInput : MonoBehaviour
 
     void OnMovementPerformed(InputAction.CallbackContext value)
     {
-        movementDirection = Vector3.ClampMagnitude(value.ReadValue<Vector3>(), 1);        
+        movementDirection = value.ReadValue<Vector3>();        
     }
 
     void OnMovementCanceled(InputAction.CallbackContext value)
