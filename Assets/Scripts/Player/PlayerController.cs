@@ -4,17 +4,16 @@ public class PlayerController: MonoBehaviour
 {
     [SerializeField] Transform orientation;
     [SerializeField, Range(0f, 100f)] float maxSpeed = 10f, maxClimbSpeed = 3f;
-    [SerializeField, Range(0f, 100f)] float maxAccel = 30f, maxAirAccel = 10f, maxClimbAccel = 12f;
+    [SerializeField, Range(0f, 100f)] float maxAccel = 30f, maxAirAccel = 10f, maxClimbAccel = 12f, airSpeedGroundDecel = 50f;
     [SerializeField, Range(0f, 10f)] float jumpHeight = 2f;
-    [SerializeField, Range(0, 5)] int maxAirJumps = 1;
-    [SerializeField, Min(0)] int stepsForLaunchSpeed = 12, stepsTilLaunchSpeedReset = 1, stepsTilJumpIgnored = 12;
+    [SerializeField, Min(0)] int stepsForAirSpeed = 12, stepsTilJumpIgnored = 12;
     float horizontalSpeed, maxAirSpeed;
     public float HorizontalSpeed => horizontalSpeed;
     bool jumpTried;
     bool climbTried;
     float jumpSpeed;
     int jumps;
-    int stepsGrounded, stepsSinceLastGrounded, stepsSinceLastJump, stepsSinceJumpTried;
+    int stepsSinceLastGrounded, stepsSinceLastJump, stepsSinceJumpTried;
 
     [SerializeField, Range(0f, 100f)] float maxSnapSpeed = 12f;
     [SerializeField, Min(0f)] float snapProbeDistance = 1f;
@@ -105,7 +104,6 @@ public class PlayerController: MonoBehaviour
 
         if (Climbing || OnGround || SnapToGround()) {
             stepsSinceLastGrounded = 0;
-            stepsGrounded += 1;
             //the first physics step after a jump still counts as grounded because OnCollision is called after FixedUpdate
             //so FixedUpdate uses collisions from the previous step, which makes the player count as grounded 1 step after a jump
             if (stepsSinceLastJump > 1) 
@@ -118,14 +116,12 @@ public class PlayerController: MonoBehaviour
                 climbNormal.Normalize();
 
             previousWallNormal = Vector3.zero;
-            maxAirSpeed = maxSpeed;
         }
         else {
             if (wallContactCount > 1)
                 wallNormal.Normalize();
 
             groundNormal = Vector3.up;
-            stepsGrounded = 0;
         }
 
         if (connectedBody) {
@@ -176,11 +172,20 @@ public class PlayerController: MonoBehaviour
             acceleration = maxClimbAccel;
         }   
         else if (OnGround) {
-            speed = maxSpeed;
+            if (maxAirSpeed > maxSpeed) {
+                maxAirSpeed = Mathf.Max(maxAirSpeed - airSpeedGroundDecel * Time.deltaTime, maxSpeed);
+                if (horizontalSpeed < maxAirSpeed) {
+                    maxAirSpeed = horizontalSpeed;
+                }
+                speed = maxAirSpeed;
+            } 
+            else {
+                speed = maxSpeed;
+            }
             acceleration = maxAccel;
         } 
         else {
-            if (horizontalSpeed > maxAirSpeed && stepsSinceLastJump < stepsForLaunchSpeed) {
+            if (horizontalSpeed > maxAirSpeed && stepsSinceLastJump < stepsForAirSpeed) {
                 maxAirSpeed = horizontalSpeed;
             }
             else if (horizontalSpeed < maxSpeed) {
@@ -243,11 +248,6 @@ public class PlayerController: MonoBehaviour
             previousWallNormal = wallNormal;
             jumps -= 1;
         }
-        else if (maxAirJumps > 0 && jumps <= maxAirJumps) {
-            if (jumps == 0) 
-                jumps = 1;
-            jumpDirection = groundNormal;
-        }
         else {
             return;
         }
@@ -255,8 +255,9 @@ public class PlayerController: MonoBehaviour
         jumpDirection = (jumpDirection + Vector3.up).normalized;
         float currentJumpSpeed = jumpSpeed;
         float alignedSpeed = Vector3.Dot(velocity, jumpDirection);
-        if (alignedSpeed > 0f)
+        if (alignedSpeed > 0f) {
             currentJumpSpeed = Mathf.Max(jumpSpeed - alignedSpeed, 0f);
+        }
         velocity += currentJumpSpeed * jumpDirection;
 
         stepsSinceLastJump = 0;

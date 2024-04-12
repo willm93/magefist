@@ -151,18 +151,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef37aa93c65a0b344ba8fa6c38c253f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerCam: {fileID: 0}
   orientation: {fileID: 7922245560840927422}
   maxSpeed: 10
   maxClimbSpeed: 3
   maxAccel: 90
-  maxAirAccel: 9
+  maxAirAccel: 13
   maxClimbAccel: 45
-  jumpHeight: 2.7
-  maxAirJumps: 0
-  stepsForLaunchVelocity: 12
-  stepsTilLaunchVelocityReset: 1
-  stepsTilJumpIgnored: 10
+  airSpeedGroundDecel: 40
+  jumpHeight: 2.8
+  stepsForAirSpeed: 12
+  stepsTilJumpIgnored: 5
   maxSnapSpeed: 12
   snapProbeDistance: 1.75
   snapProbeMask:
