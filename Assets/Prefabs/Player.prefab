@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 7793137963934047321}
   - component: {fileID: 6944157795560765920}
   - component: {fileID: 8510007299271954562}
-  - component: {fileID: 7604845615314834851}
   - component: {fileID: 4201883474674553609}
+  - component: {fileID: 7604845615314834851}
+  - component: {fileID: 3387060123179740113}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -139,6 +140,18 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 1
+--- !u!114 &4201883474674553609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3463210080392203411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d782298e9072f4fb69cd973337b088, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7604845615314834851
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -151,7 +164,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef37aa93c65a0b344ba8fa6c38c253f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orientation: {fileID: 7922245560840927422}
   maxSpeed: 10
   maxClimbSpeed: 3
   maxAccel: 90
@@ -177,7 +189,7 @@ MonoBehaviour:
   minWallJumpResetAngle: 60
   maxclimbFacingAwayAngle: 80
   maxClimbAngle: 140
---- !u!114 &4201883474674553609
+--- !u!114 &3387060123179740113
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -186,9 +198,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3463210080392203411}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29d782298e9072f4fb69cd973337b088, type: 3}
+  m_Script: {fileID: 11500000, guid: eaee3163955e226479a0c7271ffa5734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dashAccel: 50
 --- !u!1 &3521268547694333317
 GameObject:
   m_ObjectHideFlags: 0

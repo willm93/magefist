@@ -2,16 +2,19 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof (PlayerController))]
+[RequireComponent(typeof (AbilityController))]
 public class PlayerInput : MonoBehaviour
 {
     InputController inputController;
     PlayerController playerController;
+    AbilityController abilityController;
     Vector3 movementDirection;
 
     void Awake()
     {
         inputController = new InputController();
         playerController = GetComponent<PlayerController>();
+        abilityController = GetComponent<AbilityController>();
     }
 
     void Update()
@@ -27,6 +30,7 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.performed += OnClimbPerformed;
         inputController.Player.Climb.canceled += OnClimbCanceled;
         inputController.Player.Jump.performed += OnJumpPerformed;
+        inputController.Player.Dash.performed += OnDashPerformed;
     }
 
     void OnDisable()
@@ -37,6 +41,7 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.performed -= OnClimbPerformed;
         inputController.Player.Climb.canceled -= OnClimbCanceled;
         inputController.Player.Jump.performed -= OnJumpPerformed;
+        inputController.Player.Dash.performed -= OnDashPerformed;
     }
 
     void OnMovementPerformed(InputAction.CallbackContext value)
@@ -62,6 +67,11 @@ public class PlayerInput : MonoBehaviour
     void OnJumpPerformed(InputAction.CallbackContext value)
     {
         playerController.TryJump();
+    }
+
+    void OnDashPerformed(InputAction.CallbackContext value)
+    {
+        abilityController.TryDash(movementDirection);
     }
 
     public Vector2 GetMouseDelta()
