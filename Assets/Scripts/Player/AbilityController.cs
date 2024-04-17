@@ -4,8 +4,10 @@ public class AbilityController : MonoBehaviour
 {
     [SerializeField, Range(0f, 100f)] float dashSpeed = 50f;
     [SerializeField, Min(0)] int stepsPerDash = 20; 
+    [SerializeField, Range(0, 180)] float maxFacingWallAngle = 70f;
+    float minFacingWallDot;
     int stepsDashing;
-    PlayerController playerController;
+    PlayerController pc;
     Rigidbody body;
     Transform orientation;
     Vector3 velocity, dashDirection;
@@ -14,15 +16,17 @@ public class AbilityController : MonoBehaviour
 
     void Awake()
     {
-        playerController = GetComponent<PlayerController>();
+        pc = GetComponent<PlayerController>();
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
+
+        minFacingWallDot = Mathf.Cos(maxFacingWallAngle * Mathf.Deg2Rad);
     }
 
     void FixedUpdate()
     {
         velocity = body.velocity;
-        currentSpeed = playerController.HorizontalSpeed;
+        currentSpeed = pc.HorizontalSpeed;
 
         if (dashTried && !dashing) {
             initSpeed = currentSpeed;
@@ -32,18 +36,18 @@ public class AbilityController : MonoBehaviour
 
         if (dashing) {
             stepsDashing += 1;
-            if (currentSpeed < dashSpeed && !playerController.OnWall) {
+            bool facingWall = pc.FacingWall(orientation.forward, pc.WallNormal, minFacingWallDot);
+            if (currentSpeed < dashSpeed && !facingWall) {
                 float speedDelta = dashSpeed - currentSpeed;
-                velocity += speedDelta * dashDirection;
+                velocity += pc.ProjectOnPlane(speedDelta * dashDirection, pc.GroundNormal);
             }
             
             if (stepsDashing > stepsPerDash) {
                 dashing = false;
                 stepsDashing = 0;
-                if (playerController.HorizontalSpeed > initSpeed) {
-                    float speedDelta = playerController.HorizontalSpeed - initSpeed;
-                    Vector3 currentDirection = new Vector3(velocity.x, 0, velocity.z).normalized;
-                    velocity -= speedDelta * currentDirection;
+                if (pc.HorizontalSpeed > initSpeed) {
+                    float speedDelta = pc.HorizontalSpeed - initSpeed;
+                    velocity -= pc.ProjectOnPlane(speedDelta * velocity.normalized, pc.GroundNormal);
                 }
             }
         }

@@ -1,3 +1,4 @@
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 [RequireComponent (typeof (Rigidbody))]
@@ -19,11 +20,14 @@ public class PlayerController: MonoBehaviour
     [SerializeField] LayerMask snapProbeMask = -1, stairsMask = -1, climbMask = -1;
 
     [SerializeField, Range(0, 90)] 
-    float maxGroundAngle = 45f, maxStairAngle = 55f, minWallJumpResetAngle = 90f, maxclimbFacingAwayAngle = 80f;
+    float maxGroundAngle = 45f, maxStairAngle = 55f, minWallJumpResetAngle = 90f;
+    [SerializeField, Range(0, 180)] float maxclimbFacingAwayAngle = 90f;
     [SerializeField, Range(90, 170)] float maxClimbAngle = 140f;
     float minGroundDot, minStairDot, maxWallJumpDot, minClimbDot, minClimbFacingAwayDot;
     
     Vector3 groundNormal, wallNormal, previousWallNormal, climbNormal;
+    public Vector3 GroundNormal => groundNormal;
+    public Vector3 WallNormal => wallNormal;
     int groundContactCount, wallContactCount, climbContactCount;
     public bool OnGround => groundContactCount > 0;
     public bool OnWall => wallContactCount > 0;
@@ -48,8 +52,10 @@ public class PlayerController: MonoBehaviour
         minGroundDot = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
         minStairDot = Mathf.Cos(maxStairAngle * Mathf.Deg2Rad);
         maxWallJumpDot = Mathf.Cos(minWallJumpResetAngle * Mathf.Deg2Rad);
+
         minClimbDot = Mathf.Cos(maxClimbAngle * Mathf.Deg2Rad);
         minClimbFacingAwayDot = Mathf.Cos(maxclimbFacingAwayAngle * Mathf.Deg2Rad);
+
         jumpSpeed = Mathf.Sqrt(-2f * Physics.gravity.y * jumpHeight);
         airSpeed = baseSpeed;
     }
@@ -116,6 +122,8 @@ public class PlayerController: MonoBehaviour
         else {
             if (wallContactCount > 1)
                 wallNormal.Normalize();
+
+            groundNormal = Vector3.up;
         }
 
         if (connectedBody) {
@@ -292,7 +300,7 @@ public class PlayerController: MonoBehaviour
                 if (climbTried && 
                     normal.y >= minClimbDot && 
                     (climbMask & (1 << layer)) != 0 &&
-                    Vector3.Dot(orientation.forward, -normal) >= minClimbFacingAwayDot
+                    FacingWall(orientation.forward, normal, minClimbFacingAwayDot)
                 ){
                     climbContactCount += 1;
                     climbNormal += normal;
@@ -307,8 +315,13 @@ public class PlayerController: MonoBehaviour
         return (stairsMask & (1 << layer)) == 0 ? minGroundDot : minStairDot;
     }
 
-    Vector3 ProjectOnPlane(Vector3 vector, Vector3 normal) 
+    public Vector3 ProjectOnPlane(Vector3 vector, Vector3 normal) 
     {
         return vector - normal * Vector3.Dot(vector, normal);
+    }
+
+    public bool FacingWall(Vector3 facingDir, Vector3 wallNormal, float minAngleCosine)
+    {
+        return Vector3.Dot(facingDir, -wallNormal) >= minAngleCosine;
     }
 }
