@@ -5,12 +5,12 @@ public class AbilityController : MonoBehaviour
     [SerializeField, Range(0f, 100f)] float dashSpeed = 50f;
     [SerializeField, Min(0)] int stepsPerDash = 20; 
     [SerializeField, Range(0, 180)] float maxFacingWallAngle = 70f;
-    float minFacingWallDot;
+    float minIntoWallDot;
     int stepsDashing;
     PlayerController pc;
     Rigidbody body;
     Transform orientation;
-    Vector3 velocity, dashDirection;
+    Vector3 desiredVelocity, dashDirection;
     float initSpeed, currentSpeed;
     bool dashTried, dashing;
 
@@ -20,12 +20,12 @@ public class AbilityController : MonoBehaviour
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
 
-        minFacingWallDot = Mathf.Cos(maxFacingWallAngle * Mathf.Deg2Rad);
+        minIntoWallDot = Mathf.Cos(maxFacingWallAngle * Mathf.Deg2Rad);
     }
 
     void FixedUpdate()
     {
-        velocity = body.velocity;
+        desiredVelocity = body.velocity;
         currentSpeed = pc.HorizontalSpeed;
 
         if (dashTried && !dashing) {
@@ -36,30 +36,38 @@ public class AbilityController : MonoBehaviour
 
         if (dashing) {
             stepsDashing += 1;
-            bool facingWall = pc.FacingWall(orientation.forward, pc.WallNormal, minFacingWallDot);
-            if (currentSpeed < dashSpeed && !facingWall) {
+            float intoWallDot = Vector3.Dot(dashDirection, -pc.WallNormal);
+            if (currentSpeed < dashSpeed) {
                 float speedDelta = dashSpeed - currentSpeed;
-                velocity += pc.ProjectOnPlane(speedDelta * dashDirection, pc.GroundNormal);
+                speedDelta *= Mathf.Clamp01(1 - intoWallDot);
+                desiredVelocity += pc.ProjectOnPlane(speedDelta * dashDirection, pc.GroundNormal);
             }
-            
+
+            desiredVelocity.y *= Mathf.Clamp01(1 - 0.18f * intoWallDot);
+
             if (stepsDashing > stepsPerDash) {
                 dashing = false;
                 stepsDashing = 0;
                 if (pc.HorizontalSpeed > initSpeed) {
                     float speedDelta = pc.HorizontalSpeed - initSpeed;
-                    velocity -= pc.ProjectOnPlane(speedDelta * velocity.normalized, pc.GroundNormal);
+                    desiredVelocity -= pc.ProjectOnPlane(speedDelta * desiredVelocity.normalized, pc.GroundNormal);
                 }
             }
         }
 
-        body.velocity = velocity;
+        body.velocity = desiredVelocity;
     }
 
     public void TryDash(Vector3 direction)
     {
         if (!dashing) {
             dashTried = true;
-            dashDirection = orientation.forward * direction.z + orientation.right * direction.x;
+            if (direction == Vector3.zero) {
+                dashDirection = orientation.forward;
+            }
+            else {
+                dashDirection = orientation.forward * direction.z + orientation.right * direction.x;
+            }
         }
     }
 }
