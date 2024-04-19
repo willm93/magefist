@@ -3,9 +3,7 @@ using UnityEngine;
 public class AbilityController : MonoBehaviour
 {
     [SerializeField, Range(0f, 100f)] float dashSpeed = 50f;
-    [SerializeField, Min(0)] int stepsPerDash = 20; 
-    [SerializeField, Range(0, 180)] float maxFacingWallAngle = 70f;
-    float minIntoWallDot;
+    [SerializeField, Min(0)] int stepsPerDash = 20;
     int stepsDashing;
     PlayerController pc;
     Rigidbody body;
@@ -19,8 +17,6 @@ public class AbilityController : MonoBehaviour
         pc = GetComponent<PlayerController>();
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
-
-        minIntoWallDot = Mathf.Cos(maxFacingWallAngle * Mathf.Deg2Rad);
     }
 
     void FixedUpdate()
@@ -37,7 +33,7 @@ public class AbilityController : MonoBehaviour
         if (dashing) {
             stepsDashing += 1;
             float intoWallDot = Vector3.Dot(dashDirection, -pc.WallNormal);
-            if (currentSpeed < dashSpeed) {
+            if (currentSpeed < dashSpeed && stepsDashing <= stepsPerDash) {
                 float speedDelta = dashSpeed - currentSpeed;
                 speedDelta *= Mathf.Clamp01(1 - intoWallDot);
                 desiredVelocity += pc.ProjectOnPlane(speedDelta * dashDirection, pc.GroundNormal);
@@ -51,6 +47,7 @@ public class AbilityController : MonoBehaviour
                 if (pc.HorizontalSpeed > initSpeed) {
                     float speedDelta = pc.HorizontalSpeed - initSpeed;
                     desiredVelocity -= pc.ProjectOnPlane(speedDelta * desiredVelocity.normalized, pc.GroundNormal);
+                    desiredVelocity.y = 0; //stops wierd super high bounces
                 }
             }
         }
