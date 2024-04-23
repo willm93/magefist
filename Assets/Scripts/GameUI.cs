@@ -15,6 +15,6 @@ public class GameUI : MonoBehaviour
         groundUI.SetActive(playerController.OnGround);
         wallUI.SetActive(playerController.OnWall);
 
-        speedUI.SetText("{0:3}\nSpeed", playerController.FlatSpeed);
+        speedUI.SetText("{0:3}\nSpeed", playerController.CurrentSpeed);
     }
 }

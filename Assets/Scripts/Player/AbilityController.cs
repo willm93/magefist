@@ -26,7 +26,8 @@ public class AbilityController : MonoBehaviour
             else {
                 dashDirection = orientation.forward * direction.z + orientation.right * direction.x;
             }
-
+            dashDirection = Vector3.ProjectOnPlane(dashDirection, pc.GroundNormal);
+            pc.SetSpeedLimit(50f);
             body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
 
             Invoke(nameof(ResetDash), 1f);
