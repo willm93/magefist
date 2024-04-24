@@ -8910,6 +8910,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
+      propertyPath: dashCoolDown
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
+      propertyPath: dashDuration
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
       propertyPath: stepsPerDash
       value: 11
       objectReference: {fileID: 0}
@@ -8930,6 +8940,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
+      propertyPath: runSpeed
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
       propertyPath: baseAccel
       value: 200
       objectReference: {fileID: 0}
@@ -8937,6 +8952,11 @@ PrefabInstance:
         type: 3}
       propertyPath: baseSpeed
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
+      propertyPath: dashSpeed
+      value: 42
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
@@ -8955,8 +8975,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
+      propertyPath: groundDrag
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
+      propertyPath: groundAccel
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
+      propertyPath: defaultSpeed
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
       propertyPath: wallJumpForce
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+        type: 3}
+      propertyPath: dashSpeedChangeFactor
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}

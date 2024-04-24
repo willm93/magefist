@@ -1,15 +1,16 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent (typeof (Rigidbody))]
 public class PlayerController: MonoBehaviour 
 {
     [Header("Speeds/Accels")]
-    [SerializeField, Range(0f, 100f)] float baseSpeed = 10f;
-    [SerializeField, Range(0f, 100f)] float climbSpeed = 3f;
-    [SerializeField, Range(0f, 200f)] float baseAccel = 30f, airAccel = 10f, climbAccel = 12f;
+    [SerializeField, Range(0f, 100f)] float defaultSpeed = 10f;
+    [SerializeField, Range(0f, 100f)] float climbSpeed = 3f, dashSpeed = 30f, dashSpeedChangeFactor = 1f;
+    [SerializeField, Range(0f, 200f)] float groundAccel = 30f, airAccel = 10f, climbAccel = 12f;
     [SerializeField, Range(0f, 25f)] float jumpForce = 5f, wallJumpForce = 4f, groundDrag = 10f;
     [SerializeField, Min(0)] int stepsTilJumpIgnored = 12;
-    float currentSpeed, previousCurrentSpeed, jumpSpeed;
+    float currentSpeed;
     public float CurrentSpeed => currentSpeed;
     bool jumpTried, climbTried;
     int stepsSinceLastGrounded, stepsSinceLastJump, stepsSinceJumpTried;
@@ -34,12 +35,17 @@ public class PlayerController: MonoBehaviour
     public bool OnWall => wallContactCount > 0;
     public bool Climbing => climbContactCount > 0 && stepsSinceLastJump > 2;
 
+    public enum MovementState { Default, Dashing }
+    MovementState currentMoveState = MovementState.Default, lastMoveState = MovementState.Default;
+    float desiredSpeed, lastDesiredSpeed, speedChangeFactor;
+    bool keepMomentum;
+
     Transform orientation;
     Rigidbody body;
     Vector3 desiredVelocity, inputDirection;
 
     Vector3 zAxis, xAxis, currentNormal;
-    float speedLimit, inputAccel;
+    float moveSpeed, inputAccel;
 
     void Awake() 
     {
@@ -64,6 +70,10 @@ public class PlayerController: MonoBehaviour
         inputDirection = direction;
     }
 
+    public void ChangeMoveState(MovementState state) {
+        currentMoveState = state;
+    }
+
     public void TryJump()
     {
         jumpTried = true;
@@ -80,11 +90,6 @@ public class PlayerController: MonoBehaviour
         stepsSinceLastJump = -1;
     }
 
-    public void SetSpeedLimit(float speed) 
-    {
-        speedLimit = speed;
-    }
-
     void FixedUpdate() 
     {
         desiredVelocity = body.velocity;
@@ -99,14 +104,18 @@ public class PlayerController: MonoBehaviour
         }
         if (Climbing) {
             desiredVelocity += -climbNormal * (climbAccel * Time.deltaTime * 0.9f);
-            desiredVelocity += -Physics.gravity * Time.deltaTime;
+            body.useGravity = false;
         } 
         else if (OnGround && inputDirection == Vector3.zero) {
-            desiredVelocity += -Physics.gravity * Time.deltaTime;
+            body.useGravity = false;
         }
+        else if (currentMoveState == MovementState.Default) {
+            body.useGravity = true;
+        }
+
         LimitSpeed();
         body.velocity = desiredVelocity;
-        ClearState();
+        ClearContacts();
     }
 
     void UpdateState() 
@@ -171,45 +180,86 @@ public class PlayerController: MonoBehaviour
 
     void SetSpeedAndAccel()
     {
-        previousCurrentSpeed = currentSpeed;
         currentSpeed = Vector3.ProjectOnPlane(body.velocity, Vector3.up).magnitude;
-        float normalSpeed;
-        float decelPercent;
 
         if (Climbing) {
-            normalSpeed = climbSpeed;
+            desiredSpeed = climbSpeed;
             inputAccel = climbAccel;
-            decelPercent = 0.5f;
         }   
         else if (OnGround) {
-            normalSpeed = baseSpeed;
-            inputAccel = baseAccel;
-            decelPercent = 0.1f;
+            if (currentMoveState == MovementState.Dashing) {
+                desiredSpeed = dashSpeed;
+                speedChangeFactor = dashSpeedChangeFactor;
+            }
+            else {
+                desiredSpeed = defaultSpeed;
+            }
+            inputAccel = groundAccel;
         } 
         else {
-            normalSpeed = baseSpeed;
+            if (currentMoveState == MovementState.Dashing) {
+                desiredSpeed = dashSpeed;
+                speedChangeFactor = dashSpeedChangeFactor;
+            }
+            else {
+                desiredSpeed = defaultSpeed;
+            }
             inputAccel = airAccel;
-            decelPercent = 0.001f;
         }
-        speedLimit = SmoothDecel(normalSpeed, decelPercent);
+
+        if (lastMoveState == MovementState.Dashing)
+            keepMomentum = true;
+
+        if (desiredSpeed != lastDesiredSpeed) {
+            if (keepMomentum) {
+                StopAllCoroutines();
+                StartCoroutine(SmoothSpeedChange());
+            }
+            else {
+                StopAllCoroutines();
+                moveSpeed = desiredSpeed;
+            }
+        }
+        lastDesiredSpeed = desiredSpeed;
+        lastMoveState = currentMoveState;
+    }
+
+    IEnumerator SmoothSpeedChange() 
+    {
+        float time = 0;
+        float speedDifference = Mathf.Abs(desiredSpeed - moveSpeed);
+        float startValue = moveSpeed;
+        float boostFactor = speedChangeFactor;
+
+        while (time < speedDifference) {
+            moveSpeed = Mathf.Lerp(startValue, desiredSpeed, time / speedDifference);
+            time += Time.deltaTime * boostFactor;
+            yield return null;
+        }
+
+        moveSpeed = desiredSpeed;
+        speedChangeFactor = 1f;
+        keepMomentum = false;
     }
 
     float SmoothDecel(float normalSpeed, float decelPercent)
     {
-        if (speedLimit < normalSpeed) {
+        if (moveSpeed < normalSpeed) {
             return normalSpeed;
         }
         else {
-            return Mathf.Lerp(speedLimit, normalSpeed, decelPercent);
+            return Mathf.Lerp(moveSpeed, normalSpeed, decelPercent);
         }
     }
 
     void EvaluateInputDirection() 
     {
-        float xDelta = inputDirection.x * inputAccel * Time.deltaTime;
-        float zDelta = inputDirection.z * inputAccel * Time.deltaTime;
-        
-        desiredVelocity += xAxis * xDelta + zAxis * zDelta;
+        if (currentMoveState == MovementState.Default) {
+            float xDelta = inputDirection.x * inputAccel * Time.deltaTime;
+            float zDelta = inputDirection.z * inputAccel * Time.deltaTime;
+            
+            desiredVelocity += xAxis * xDelta + zAxis * zDelta;
+        }
     }
 
     void ApplyDrag()
@@ -225,13 +275,13 @@ public class PlayerController: MonoBehaviour
     void LimitSpeed() 
     {
         if (Climbing || OnGround) {
-            if (desiredVelocity.sqrMagnitude > speedLimit * speedLimit) {
-                desiredVelocity = desiredVelocity.normalized * speedLimit;
+            if (desiredVelocity.sqrMagnitude > moveSpeed * moveSpeed) {
+                desiredVelocity = desiredVelocity.normalized * moveSpeed;
             }
         }
         else {
-            if (currentSpeed > speedLimit) {
-                Vector3 limitedVelocity = desiredVelocity.normalized * speedLimit;
+            if (currentSpeed > moveSpeed) {
+                Vector3 limitedVelocity = desiredVelocity.normalized * moveSpeed;
                 desiredVelocity = new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
             }
         }   
@@ -260,7 +310,7 @@ public class PlayerController: MonoBehaviour
         }
     }
 
-    void ClearState() 
+    void ClearContacts() 
     {
         groundContactCount = wallContactCount = climbContactCount = 0;
         groundNormal = wallNormal = climbNormal = Vector3.zero;

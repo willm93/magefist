@@ -2,12 +2,14 @@ using UnityEngine;
 
 public class AbilityController : MonoBehaviour
 {
-    [SerializeField, Range(0f, 100f)] float dashForce = 50f;
+    [SerializeField, Range(0f, 100f)] float dashForce = 50f, dashCoolDown = 2f, dashDuration = 0.5f;
+    float dashCDTimer;
+    Vector3 dashDirection;
+
     PlayerController pc;
     Rigidbody body;
     Transform orientation;
-    Vector3 dashDirection;
-    bool dashing;
+    
 
     void Awake()
     {
@@ -16,26 +18,42 @@ public class AbilityController : MonoBehaviour
         orientation = transform.Find("Orientation");
     }
 
-    public void TryDash(Vector3 direction)
+    void Update()
     {
-        /*if (!dashing) {
-            dashing = true;
-            if (direction == Vector3.zero) {
-                dashDirection = orientation.forward;
-            }
-            else {
-                dashDirection = orientation.forward * direction.z + orientation.right * direction.x;
-            }
-            dashDirection = Vector3.ProjectOnPlane(dashDirection, pc.GroundNormal);
-            pc.SetSpeedLimit(50f);
-            body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
+        if (dashCDTimer > 0)
+            dashCDTimer -= Time.deltaTime;
+    }
 
-            Invoke(nameof(ResetDash), 1f);
-        }*/
+    public void Dash(Vector3 direction)
+    {
+        if (dashCDTimer > 0) 
+            return;
+        else 
+            dashCDTimer = dashCoolDown;
+
+        if (direction == Vector3.zero)
+            dashDirection = orientation.forward;
+        else
+            dashDirection = orientation.forward * direction.z + orientation.right * direction.x;
+
+        dashDirection = Vector3.ProjectOnPlane(dashDirection, pc.GroundNormal);
+
+
+        Invoke(nameof(DelayedDash), 0.025f);
+        Invoke(nameof(ResetDash), dashDuration);
+    }
+
+    void DelayedDash() 
+    {
+        body.velocity = Vector3.zero;
+        body.useGravity = false;
+        pc.ChangeMoveState(PlayerController.MovementState.Dashing);
+        body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
     }
 
     void ResetDash()
     {
-        dashing = false;
+        pc.ChangeMoveState(PlayerController.MovementState.Default);
+        body.useGravity = true;
     }
 }

@@ -71,7 +71,7 @@ public class PlayerInput : MonoBehaviour
 
     void OnDashPerformed(InputAction.CallbackContext value)
     {
-        abilityController.TryDash(movementDirection);
+        abilityController.Dash(movementDirection);
     }
 
     public Vector2 GetMouseDelta()
