@@ -5,13 +5,14 @@ using UnityEngine;
 public class PlayerController: MonoBehaviour 
 {
     [Header("Speeds/Accels")]
-    [SerializeField, Range(0f, 100f)] float defaultSpeed = 10f;
-    [SerializeField, Range(0f, 100f)] float climbSpeed = 3f, dashSpeed = 30f, dashSpeedChangeFactor = 1f;
+    [SerializeField, Range(0f, 100f)] float defaultSpeed = 11f;
+    [SerializeField, Range(0f, 100f)] float climbSpeed = 3f, dashSpeed = 30f, dashYSpeed = 10f, dashSpeedChangeFactor = 1f;
     [SerializeField, Range(0f, 200f)] float groundAccel = 30f, airAccel = 10f, climbAccel = 12f;
     [SerializeField, Range(0f, 25f)] float jumpForce = 5f, wallJumpForce = 4f, groundDrag = 10f;
     [SerializeField, Min(0)] int stepsTilJumpIgnored = 12;
-    float currentSpeed;
-    public float CurrentSpeed => currentSpeed;
+    float currentSpeed, currentYSpeed;
+    public float CurrentSpeed => currentSpeed; 
+    public float CurrentYSpeed => currentYSpeed;
     bool jumpTried, climbTried;
     int stepsSinceLastGrounded, stepsSinceLastJump, stepsSinceJumpTried;
 
@@ -180,30 +181,19 @@ public class PlayerController: MonoBehaviour
 
     void SetSpeedAndAccel()
     {
-        currentSpeed = Vector3.ProjectOnPlane(body.velocity, Vector3.up).magnitude;
+        currentSpeed = Vector3.ProjectOnPlane(desiredVelocity, Vector3.up).magnitude;
+        currentYSpeed = desiredVelocity.y;
 
         if (Climbing) {
             desiredSpeed = climbSpeed;
             inputAccel = climbAccel;
         }   
         else if (OnGround) {
-            if (currentMoveState == MovementState.Dashing) {
-                desiredSpeed = dashSpeed;
-                speedChangeFactor = dashSpeedChangeFactor;
-            }
-            else {
-                desiredSpeed = defaultSpeed;
-            }
+            desiredSpeed = FindMoveStateSpeed();
             inputAccel = groundAccel;
         } 
         else {
-            if (currentMoveState == MovementState.Dashing) {
-                desiredSpeed = dashSpeed;
-                speedChangeFactor = dashSpeedChangeFactor;
-            }
-            else {
-                desiredSpeed = defaultSpeed;
-            }
+            desiredSpeed = FindMoveStateSpeed();
             inputAccel = airAccel;
         }
 
@@ -224,6 +214,17 @@ public class PlayerController: MonoBehaviour
         lastMoveState = currentMoveState;
     }
 
+    float FindMoveStateSpeed() 
+    {
+        if (currentMoveState == MovementState.Dashing) {
+            speedChangeFactor = dashSpeedChangeFactor;
+            return dashSpeed;   
+        }
+        else {
+            return defaultSpeed;
+        }
+    }
+
     IEnumerator SmoothSpeedChange() 
     {
         float time = 0;
@@ -242,16 +243,6 @@ public class PlayerController: MonoBehaviour
         keepMomentum = false;
     }
 
-    float SmoothDecel(float normalSpeed, float decelPercent)
-    {
-        if (moveSpeed < normalSpeed) {
-            return normalSpeed;
-        }
-        else {
-            return Mathf.Lerp(moveSpeed, normalSpeed, decelPercent);
-        }
-    }
-
     void EvaluateInputDirection() 
     {
         if (currentMoveState == MovementState.Default) {
@@ -264,7 +255,7 @@ public class PlayerController: MonoBehaviour
 
     void ApplyDrag()
     {
-        if (OnGround && inputDirection == Vector3.zero) {
+        if ((Climbing || OnGround) && currentMoveState != MovementState.Dashing && inputDirection == Vector3.zero) {
             body.drag = groundDrag;
         }
         else {
@@ -277,6 +268,15 @@ public class PlayerController: MonoBehaviour
         if (Climbing || OnGround) {
             if (desiredVelocity.sqrMagnitude > moveSpeed * moveSpeed) {
                 desiredVelocity = desiredVelocity.normalized * moveSpeed;
+            }
+        }
+        else if (keepMomentum) {
+            if (currentSpeed > moveSpeed) {
+                Vector3 limitedVelocity = desiredVelocity.normalized * moveSpeed;
+                desiredVelocity = new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
+            }
+            if (currentYSpeed > dashYSpeed) {
+                desiredVelocity.y = dashYSpeed;
             }
         }
         else {

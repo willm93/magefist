@@ -8,6 +8,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] GameObject groundUI;
     [SerializeField] GameObject wallUI;
     [SerializeField] TextMeshProUGUI speedUI;
+    [SerializeField] TextMeshProUGUI YspeedUI;
 
     void Update()
     {
@@ -15,6 +16,7 @@ public class GameUI : MonoBehaviour
         groundUI.SetActive(playerController.OnGround);
         wallUI.SetActive(playerController.OnWall);
 
-        speedUI.SetText("{0:3}\nSpeed", playerController.CurrentSpeed);
+        speedUI.SetText("{0:2}\nSpeed", playerController.CurrentSpeed);
+        YspeedUI.SetText("{0:2}\nY Speed", playerController.CurrentYSpeed);
     }
 }
