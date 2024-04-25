@@ -39,7 +39,7 @@ public class AbilityController : MonoBehaviour
         dashDirection = Vector3.ProjectOnPlane(dashDirection, pc.GroundNormal);
 
 
-        Invoke(nameof(DelayedDash), 0.025f);
+        Invoke(nameof(DelayedDash), 0.025f); //delay until player controller increases move speed to dash speed
         Invoke(nameof(ResetDash), dashDuration);
     }
 

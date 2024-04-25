@@ -11733,7 +11733,7 @@ PrefabInstance:
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
       propertyPath: jumpForce
-      value: 12
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
@@ -11768,7 +11768,7 @@ PrefabInstance:
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
       propertyPath: wallJumpForce
-      value: 10
+      value: 9.6
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}

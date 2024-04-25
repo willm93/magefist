@@ -32,8 +32,8 @@ public class PlayerController: MonoBehaviour
     Vector3 groundNormal, wallNormal, previousWallNormal, climbNormal;
     int groundContactCount, wallContactCount, climbContactCount;
     public Vector3 GroundNormal => groundNormal;
-    public bool OnGround => groundContactCount > 0;
-    public bool OnWall => wallContactCount > 0;
+    public bool OnGround => groundContactCount > 0 && stepsSinceLastJump > 2;
+    public bool OnWall => wallContactCount > 0 && stepsSinceLastJump > 2;
     public bool Climbing => climbContactCount > 0 && stepsSinceLastJump > 2;
 
     public enum MovementState { Default, Dashing }
@@ -114,7 +114,7 @@ public class PlayerController: MonoBehaviour
             body.useGravity = true;
         }
 
-        LimitSpeed();
+        LimitVelocity();
         body.velocity = desiredVelocity;
         ClearContacts();
     }
@@ -248,8 +248,14 @@ public class PlayerController: MonoBehaviour
         if (currentMoveState == MovementState.Default) {
             float xDelta = inputDirection.x * inputAccel * Time.deltaTime;
             float zDelta = inputDirection.z * inputAccel * Time.deltaTime;
+            Vector3 inputVelocity = xAxis * xDelta + zAxis * zDelta;
+
+            if (OnWall) {
+                float intoWallDot = Vector3.Dot(inputVelocity.normalized, -wallNormal);
+                inputVelocity *= Mathf.Clamp01(1 - intoWallDot);
+            }
             
-            desiredVelocity += xAxis * xDelta + zAxis * zDelta;
+            desiredVelocity += inputVelocity;
         }
     }
 
@@ -263,7 +269,7 @@ public class PlayerController: MonoBehaviour
         }
     }
 
-    void LimitSpeed() 
+    void LimitVelocity() 
     {
         if (Climbing || OnGround) {
             if (desiredVelocity.sqrMagnitude > moveSpeed * moveSpeed) {
@@ -272,8 +278,7 @@ public class PlayerController: MonoBehaviour
         }
         else if (keepMomentum) {
             if (currentSpeed > moveSpeed) {
-                Vector3 limitedVelocity = desiredVelocity.normalized * moveSpeed;
-                desiredVelocity = new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
+                desiredVelocity = LimitedXZVelocity();
             }
             if (currentYSpeed > dashYSpeed) {
                 desiredVelocity.y = dashYSpeed;
@@ -281,10 +286,15 @@ public class PlayerController: MonoBehaviour
         }
         else {
             if (currentSpeed > moveSpeed) {
-                Vector3 limitedVelocity = desiredVelocity.normalized * moveSpeed;
-                desiredVelocity = new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
+                desiredVelocity = LimitedXZVelocity();
             }
         }   
+    }
+
+    Vector3 LimitedXZVelocity()
+    {
+        Vector3 limitedVelocity = desiredVelocity.normalized * moveSpeed;
+        return new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
     }
 
     void Jump() 
@@ -367,5 +377,10 @@ public class PlayerController: MonoBehaviour
     public bool FacingWall(Vector3 facingDir, Vector3 wallNormal, float minAngleCosine)
     {
         return Vector3.Dot(facingDir, -wallNormal) >= minAngleCosine;
+    }
+
+    public float IntoWallMeasure(Vector3 facingDir, Vector3 wallNormal)
+    {
+        return Vector3.Dot(facingDir, -wallNormal);
     }
 }
