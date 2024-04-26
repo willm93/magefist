@@ -1,21 +1,24 @@
 using UnityEngine;
 
-public class AbilityController : MonoBehaviour
+public class Dashing : MonoBehaviour
 {
     [SerializeField, Range(0f, 100f)] float dashForce = 50f, dashCoolDown = 2f, dashDuration = 0.5f;
+    [SerializeField, Range(0f, 100f)] float dashSpeed = 30f, dashYSpeed = 10f, dashSpeedChangeFactor = 1f;
     float dashCDTimer;
     Vector3 dashDirection;
+    MoveStateParams moveStateParams;
 
     PlayerController pc;
     Rigidbody body;
     Transform orientation;
-    
 
     void Awake()
     {
         pc = GetComponent<PlayerController>();
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
+        PlayerController.MovementState state = PlayerController.MovementState.Dashing;
+        moveStateParams = new MoveStateParams(state, dashSpeed, dashYSpeed, dashSpeedChangeFactor);
     }
 
     void Update()
@@ -38,22 +41,17 @@ public class AbilityController : MonoBehaviour
 
         dashDirection = Vector3.ProjectOnPlane(dashDirection, pc.GroundNormal);
 
-
-        Invoke(nameof(DelayedDash), 0.025f); //delay until player controller increases move speed to dash speed
-        Invoke(nameof(ResetDash), dashDuration);
-    }
-
-    void DelayedDash() 
-    {
         body.velocity = Vector3.zero;
         body.useGravity = false;
-        pc.ChangeMoveState(PlayerController.MovementState.Dashing);
+        pc.ChangeMoveState(moveStateParams);
         body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
+        
+        Invoke(nameof(ResetDash), dashDuration);
     }
 
     void ResetDash()
     {
-        pc.ChangeMoveState(PlayerController.MovementState.Default);
+        pc.ResetMoveState();
         body.useGravity = true;
     }
 }

@@ -2,11 +2,11 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent (typeof (Rigidbody))]
-public class PlayerController: MonoBehaviour 
+public class PlayerController : MonoBehaviour 
 {
     [Header("Speeds/Accels")]
     [SerializeField, Range(0f, 100f)] float defaultSpeed = 11f;
-    [SerializeField, Range(0f, 100f)] float climbSpeed = 3f, dashSpeed = 30f, dashYSpeed = 10f, dashSpeedChangeFactor = 1f;
+    [SerializeField, Range(0f, 100f)] float climbSpeed = 3f;
     [SerializeField, Range(0f, 200f)] float groundAccel = 30f, airAccel = 10f, climbAccel = 12f;
     [SerializeField, Range(0f, 25f)] float jumpForce = 5f, wallJumpForce = 4f, groundDrag = 10f;
     [SerializeField, Min(0)] int stepsTilJumpIgnored = 12;
@@ -39,12 +39,12 @@ public class PlayerController: MonoBehaviour
     public enum MovementState { Default, Dashing }
     MovementState currentMoveState = MovementState.Default, lastMoveState = MovementState.Default;
     float desiredSpeed, lastDesiredSpeed, speedChangeFactor;
+    float abilitySpeed, abilityYSpeed, abilitySpeedChangeFactor;
     bool keepMomentum;
 
     Transform orientation;
     Rigidbody body;
     Vector3 desiredVelocity, inputDirection;
-
     Vector3 zAxis, xAxis, currentNormal;
     float moveSpeed, inputAccel;
 
@@ -71,8 +71,15 @@ public class PlayerController: MonoBehaviour
         inputDirection = direction;
     }
 
-    public void ChangeMoveState(MovementState state) {
-        currentMoveState = state;
+    public void ChangeMoveState(MoveStateParams stateParams) {
+        currentMoveState = stateParams.state;
+        abilitySpeed = stateParams.abilitySpeed;
+        abilityYSpeed = stateParams.abilityYSpeed;
+        abilitySpeedChangeFactor = stateParams.abilitySpeedChangeFactor;
+    }
+
+    public void ResetMoveState() {
+        currentMoveState = MovementState.Default;
     }
 
     public void TryJump()
@@ -94,6 +101,9 @@ public class PlayerController: MonoBehaviour
     void FixedUpdate() 
     {
         desiredVelocity = body.velocity;
+        currentSpeed = Vector3.ProjectOnPlane(desiredVelocity, Vector3.up).magnitude;
+        currentYSpeed = desiredVelocity.y;
+
         UpdateState();
         SetMovementAxis();
         SetSpeedAndAccel();
@@ -181,9 +191,6 @@ public class PlayerController: MonoBehaviour
 
     void SetSpeedAndAccel()
     {
-        currentSpeed = Vector3.ProjectOnPlane(desiredVelocity, Vector3.up).magnitude;
-        currentYSpeed = desiredVelocity.y;
-
         if (Climbing) {
             desiredSpeed = climbSpeed;
             inputAccel = climbAccel;
@@ -216,9 +223,9 @@ public class PlayerController: MonoBehaviour
 
     float FindMoveStateSpeed() 
     {
-        if (currentMoveState == MovementState.Dashing) {
-            speedChangeFactor = dashSpeedChangeFactor;
-            return dashSpeed;   
+        if (currentMoveState != MovementState.Default) {
+            speedChangeFactor = abilitySpeedChangeFactor;
+            return abilitySpeed;   
         }
         else {
             return defaultSpeed;
@@ -261,7 +268,7 @@ public class PlayerController: MonoBehaviour
 
     void ApplyDrag()
     {
-        if ((Climbing || OnGround) && currentMoveState != MovementState.Dashing && inputDirection == Vector3.zero) {
+        if ((Climbing || OnGround) && currentMoveState == MovementState.Default && inputDirection == Vector3.zero) {
             body.drag = groundDrag;
         }
         else {
@@ -280,8 +287,8 @@ public class PlayerController: MonoBehaviour
             if (currentSpeed > moveSpeed) {
                 desiredVelocity = LimitedXZVelocity();
             }
-            if (currentYSpeed > dashYSpeed) {
-                desiredVelocity.y = dashYSpeed;
+            if (currentYSpeed > abilityYSpeed) {
+                desiredVelocity.y = abilityYSpeed;
             }
         }
         else {
@@ -382,5 +389,18 @@ public class PlayerController: MonoBehaviour
     public float IntoWallMeasure(Vector3 facingDir, Vector3 wallNormal)
     {
         return Vector3.Dot(facingDir, -wallNormal);
+    }
+}
+
+public struct MoveStateParams 
+{
+    public PlayerController.MovementState state;
+    public float abilitySpeed, abilityYSpeed, abilitySpeedChangeFactor;
+
+    public MoveStateParams(PlayerController.MovementState _state, float xzSpeed, float ySpeed, float speedChangeFactor) {
+        state = _state;
+        abilitySpeed = xzSpeed;
+        abilityYSpeed = ySpeed;
+        abilitySpeedChangeFactor = speedChangeFactor;
     }
 }

@@ -2,19 +2,19 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof (PlayerController))]
-[RequireComponent(typeof (AbilityController))]
+[RequireComponent(typeof (Dashing))]
 public class PlayerInput : MonoBehaviour
 {
     InputController inputController;
     PlayerController playerController;
-    AbilityController abilityController;
+    Dashing abilityController;
     Vector3 movementDirection;
 
     void Awake()
     {
         inputController = new InputController();
         playerController = GetComponent<PlayerController>();
-        abilityController = GetComponent<AbilityController>();
+        abilityController = GetComponent<Dashing>();
     }
 
     void Update()
