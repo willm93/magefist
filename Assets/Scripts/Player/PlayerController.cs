@@ -8,13 +8,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Range(0f, 100f)] float defaultSpeed = 11f;
     [SerializeField, Range(0f, 100f)] float climbSpeed = 3f;
     [SerializeField, Range(0f, 200f)] float groundAccel = 30f, airAccel = 10f, climbAccel = 12f;
-    [SerializeField, Range(0f, 25f)] float jumpForce = 5f, wallJumpForce = 4f, groundDrag = 10f;
-    [SerializeField, Min(0)] int stepsTilJumpIgnored = 12;
+    [SerializeField, Range(0f, 25f)] float groundDrag = 10f;
     float currentSpeed, currentYSpeed;
     public float CurrentSpeed => currentSpeed; 
     public float CurrentYSpeed => currentYSpeed;
-    bool jumpTried, climbTried;
+    bool climbTried;
     int stepsSinceLastGrounded, stepsSinceLastJump, stepsSinceJumpTried;
+
+    [Header("Jumping")]
+    [SerializeField, Range(0f, 25f)] float jumpForce = 5f, wallJumpForce = 4f;
+    [SerializeField, Min(0)] int stepsTilJumpIgnored = 12;
+    bool jumpTried;
 
     [Header("Ground Snapping")]
     [SerializeField, Range(0f, 100f)] float maxSnapSpeed = 12f;
@@ -384,11 +388,6 @@ public class PlayerController : MonoBehaviour
     public bool FacingWall(Vector3 facingDir, Vector3 wallNormal, float minAngleCosine)
     {
         return Vector3.Dot(facingDir, -wallNormal) >= minAngleCosine;
-    }
-
-    public float IntoWallMeasure(Vector3 facingDir, Vector3 wallNormal)
-    {
-        return Vector3.Dot(facingDir, -wallNormal);
     }
 }
 
