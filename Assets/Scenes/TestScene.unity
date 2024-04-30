@@ -2108,12 +2108,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 980270773984974565, guid: bac1b0437c0928c4297b7ebc7fceb253,
         type: 3}
-      propertyPath: YspeedUI
-      value: 
-      objectReference: {fileID: 1279914335}
-    - target: {fileID: 980270773984974565, guid: bac1b0437c0928c4297b7ebc7fceb253,
-        type: 3}
-      propertyPath: playerController
+      propertyPath: pc
       value: 
       objectReference: {fileID: 1536907869}
     - target: {fileID: 7132966554370066417, guid: bac1b0437c0928c4297b7ebc7fceb253,
@@ -11443,18 +11438,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1156902583}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1279914335 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7406099644121549814, guid: bac1b0437c0928c4297b7ebc7fceb253,
-    type: 3}
-  m_PrefabInstance: {fileID: 225032541}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1435637674 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7783947480164902831, guid: e3402994fb671754a8df23778a76beb4,
@@ -11677,37 +11660,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
-      propertyPath: dashSpeed
-      value: 38
-      objectReference: {fileID: 0}
-    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashYSpeed
-      value: 14
-      objectReference: {fileID: 0}
-    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashCoolDown
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashDuration
-      value: 0.08
-      objectReference: {fileID: 0}
-    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: stepsPerDash
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: maxFacingWallAngle
-      value: 84
-      objectReference: {fileID: 0}
-    - target: {fileID: 3387060123179740113, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashSpeedChangeFactor
+      propertyPath: dashForce
       value: 55
       objectReference: {fileID: 0}
     - target: {fileID: 3463210080392203411, guid: ad512b144873571468106c5f22961bc8,
@@ -11715,90 +11668,15 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
+    - target: {fileID: 7410851735155709275, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
-      propertyPath: airAccel
-      value: 25
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: runSpeed
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: baseAccel
-      value: 200
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: baseSpeed
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashSpeed
-      value: 35
+      propertyPath: climbMask.m_Bits
+      value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
         type: 3}
       propertyPath: jumpForce
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: climbAccel
-      value: 45
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: customDrag
-      value: 0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashYSpeed
-      value: 14
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: groundDrag
-      value: 12.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: groundAccel
-      value: 160
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: defaultSpeed
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: wallJumpForce
-      value: 9.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: momentumYDamper
-      value: 0.92
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: dashSpeedChangeFactor
-      value: 55
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: minClimbFacingAwayDot
-      value: -0.50000006
-      objectReference: {fileID: 0}
-    - target: {fileID: 7604845615314834851, guid: ad512b144873571468106c5f22961bc8,
-        type: 3}
-      propertyPath: maxclimbFacingAwayAngle
-      value: 135
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

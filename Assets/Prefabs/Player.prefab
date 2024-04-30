@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 4201883474674553609}
   - component: {fileID: 7604845615314834851}
   - component: {fileID: 3387060123179740113}
+  - component: {fileID: 7410851735155709275}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -164,31 +165,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef37aa93c65a0b344ba8fa6c38c253f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 10
-  maxClimbSpeed: 3
-  maxAccel: 90
-  maxAirAccel: 13
-  maxClimbAccel: 45
-  airSpeedGroundDecel: 40
-  jumpHeight: 2.8
-  stepsForAirSpeed: 12
+  defaultMoveStateParams: {fileID: 11400000, guid: 5e1c43b7ad6f04b47a70e7f759694ac6,
+    type: 2}
+  groundDrag: 12.5
+  jumpForce: 9
+  wallJumpForce: 9.6
   stepsTilJumpIgnored: 5
   maxSnapSpeed: 12
   snapProbeDistance: 1.75
   snapProbeMask:
     serializedVersion: 2
     m_Bits: 371
-  stairsMask:
-    serializedVersion: 2
-    m_Bits: 256
-  climbMask:
-    serializedVersion: 2
-    m_Bits: 512
   maxGroundAngle: 47
-  maxStairAngle: 60
   minWallJumpResetAngle: 60
-  maxclimbFacingAwayAngle: 80
-  maxClimbAngle: 140
 --- !u!114 &3387060123179740113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,7 +190,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eaee3163955e226479a0c7271ffa5734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dashAccel: 50
+  moveStateParams: {fileID: 11400000, guid: b67184ee23d8be24fb4677a671b8ecc8, type: 2}
+  dashForce: 50
+  dashCoolDown: 1
+  dashDuration: 0.08
+--- !u!114 &7410851735155709275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3463210080392203411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55cf107fcf5a3b34aab05b9ae114d54e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveStateParams: {fileID: 11400000, guid: d6c6410850899f84790e83e2dff3c7ab, type: 2}
+  maxclimbFacingAwayAngle: 90
+  maxClimbAngle: 140
+  climbMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &3521268547694333317
 GameObject:
   m_ObjectHideFlags: 0
