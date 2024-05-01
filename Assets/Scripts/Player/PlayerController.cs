@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -41,6 +42,7 @@ public class PlayerController : MonoBehaviour
     MoveStateParams currentMoveParams, lastMoveStateParams, momentumStateParams;
     float desiredSpeed;
     bool moveStateChanged, keepingMomentum;
+    public Action<MoveState> OnStateChange;
 
     Transform orientation;
     Rigidbody body;
@@ -76,6 +78,7 @@ public class PlayerController : MonoBehaviour
         lastMoveStateParams = currentMoveParams;
         currentMoveParams = stateParams;
         moveStateChanged = lastMoveStateParams.state != currentMoveParams.state;
+        OnStateChange?.Invoke(stateParams.state);
     }
 
     public void ResetMoveState() 
@@ -83,6 +86,7 @@ public class PlayerController : MonoBehaviour
         lastMoveStateParams = currentMoveParams;
         currentMoveParams = defaultMoveStateParams;
         moveStateChanged = lastMoveStateParams.state != currentMoveParams.state;
+        OnStateChange?.Invoke(MoveState.Default);
     }
 
     public void TryJump()
@@ -190,7 +194,7 @@ public class PlayerController : MonoBehaviour
 
         if (moveStateChanged) {
             desiredSpeed = currentMoveParams.speed;
-            if (lastMoveStateParams.keepMomentum) {
+            if (lastMoveStateParams.hasMomentum && currentMoveParams.acceptsMomentum) {
                 keepingMomentum = true;
                 momentumStateParams = lastMoveStateParams;
                 StopAllCoroutines();

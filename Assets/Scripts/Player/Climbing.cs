@@ -22,6 +22,7 @@ public class Climbing : MonoBehaviour
         minClimbFacingAwayDot = Mathf.Cos(maxclimbFacingAwayAngle * Mathf.Deg2Rad);
 
         pc = GetComponent<PlayerController>();
+        pc.OnStateChange += OnStateChange;
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
     }
@@ -44,6 +45,14 @@ public class Climbing : MonoBehaviour
 
         if (isClimbing) {
             body.AddForce(-moveStateParams.normal * moveStateParams.groundAccel * 0.9f, ForceMode.Acceleration);
+        }
+    }
+
+    void OnStateChange(MoveState state)
+    {
+        if (state != MoveState.Climbing) {
+            isClimbing = false;
+            moveStateChanged = false;
         }
     }
 

@@ -6,6 +6,7 @@ public class Dashing : MonoBehaviour
     [SerializeField, Range(0f, 100f)] float dashForce = 50f, dashCoolDown = 2f, dashDuration = 0.5f;
     float dashCDTimer;
     Vector3 dashDirection;
+    bool moveStateChanged;
 
     PlayerController pc;
     Rigidbody body;
@@ -14,6 +15,7 @@ public class Dashing : MonoBehaviour
     void Awake()
     {
         pc = GetComponent<PlayerController>();
+        pc.OnStateChange += OnStateChange;
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
     }
@@ -22,6 +24,13 @@ public class Dashing : MonoBehaviour
     {
         if (dashCDTimer > 0)
             dashCDTimer -= Time.deltaTime;
+    }
+
+    void OnStateChange(MoveState state)
+    {
+        if (state != MoveState.Dashing) {
+            moveStateChanged = false;
+        }
     }
 
     public void Dash(Vector3 direction)
@@ -40,6 +49,7 @@ public class Dashing : MonoBehaviour
 
         body.velocity = Vector3.zero;
         pc.ChangeMoveState(moveStateParams);
+        moveStateChanged = true;
         body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
         
         Invoke(nameof(ResetDash), dashDuration);
@@ -47,6 +57,8 @@ public class Dashing : MonoBehaviour
 
     void ResetDash()
     {
-        pc.ResetMoveState();
+        if (moveStateChanged) {
+            pc.ResetMoveState();
+        }
     }
 }
