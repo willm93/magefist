@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent (typeof (Rigidbody))]
@@ -19,7 +18,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Range(0f,1f)] float crouchYScale = 0.5f;
     float initYScale;
     bool crouching, uncrouchQueued;
-
 
     [Header("Jumping")]
     [SerializeField, Range(0f, 25f)] float jumpForce = 5f; 
