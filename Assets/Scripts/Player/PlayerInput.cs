@@ -3,23 +3,26 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof (PlayerController))]
 [RequireComponent(typeof (Dashing))]
+[RequireComponent(typeof (Climbing))]
 public class PlayerInput : MonoBehaviour
 {
     InputController inputController;
-    PlayerController playerController;
-    Dashing abilityController;
+    PlayerController pc;
+    Dashing dasher;
+    Climbing climber;
     Vector3 movementDirection;
 
     void Awake()
     {
         inputController = new InputController();
-        playerController = GetComponent<PlayerController>();
-        abilityController = GetComponent<Dashing>();
+        pc = GetComponent<PlayerController>();
+        dasher = GetComponent<Dashing>();
+        climber = GetComponent<Climbing>();
     }
 
     void Update()
     {
-        playerController.SetInputDirection(movementDirection);
+        pc.SetInputDirection(movementDirection);
     }
 
     void OnEnable()
@@ -31,6 +34,8 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.canceled += OnClimbCanceled;
         inputController.Player.Jump.performed += OnJumpPerformed;
         inputController.Player.Dash.performed += OnDashPerformed;
+        inputController.Player.Crouch.performed += OnCrouchPerformed;
+        inputController.Player.Crouch.canceled += OnCrouchCanceled;
     }
 
     void OnDisable()
@@ -42,6 +47,8 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.canceled -= OnClimbCanceled;
         inputController.Player.Jump.performed -= OnJumpPerformed;
         inputController.Player.Dash.performed -= OnDashPerformed;
+        inputController.Player.Crouch.performed -= OnCrouchPerformed;
+        inputController.Player.Crouch.canceled -= OnCrouchCanceled;
     }
 
     void OnMovementPerformed(InputAction.CallbackContext value)
@@ -56,22 +63,32 @@ public class PlayerInput : MonoBehaviour
 
     void OnClimbPerformed(InputAction.CallbackContext value)
     {
-        playerController.Climb(true);
+        climber.Climb(true);
     }
 
     void OnClimbCanceled(InputAction.CallbackContext value)
     {
-        playerController.Climb(false);
+        climber.Climb(false);
     }
 
     void OnJumpPerformed(InputAction.CallbackContext value)
     {
-        playerController.TryJump();
+        pc.TryJump();
     }
 
     void OnDashPerformed(InputAction.CallbackContext value)
     {
-        abilityController.Dash(movementDirection);
+        dasher.Dash(movementDirection);
+    }
+
+    void OnCrouchPerformed(InputAction.CallbackContext value)
+    {
+        pc.Crouch();
+    }
+
+    void OnCrouchCanceled(InputAction.CallbackContext value)
+    {
+        pc.Uncrouch();
     }
 
     public Vector2 GetMouseDelta()
