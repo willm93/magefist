@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 public class PlayerInput : MonoBehaviour
 {
     InputController inputController;
-    PlayerController playerController;
+    PlayerController pc;
     Dashing dasher;
     Climbing climber;
     Vector3 movementDirection;
@@ -15,14 +15,14 @@ public class PlayerInput : MonoBehaviour
     void Awake()
     {
         inputController = new InputController();
-        playerController = GetComponent<PlayerController>();
+        pc = GetComponent<PlayerController>();
         dasher = GetComponent<Dashing>();
         climber = GetComponent<Climbing>();
     }
 
     void Update()
     {
-        playerController.SetInputDirection(movementDirection);
+        pc.SetInputDirection(movementDirection);
     }
 
     void OnEnable()
@@ -34,6 +34,8 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.canceled += OnClimbCanceled;
         inputController.Player.Jump.performed += OnJumpPerformed;
         inputController.Player.Dash.performed += OnDashPerformed;
+        inputController.Player.Crouch.performed += OnCrouchPerformed;
+        inputController.Player.Crouch.canceled += OnCrouchCanceled;
     }
 
     void OnDisable()
@@ -45,6 +47,8 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.canceled -= OnClimbCanceled;
         inputController.Player.Jump.performed -= OnJumpPerformed;
         inputController.Player.Dash.performed -= OnDashPerformed;
+        inputController.Player.Crouch.performed -= OnCrouchPerformed;
+        inputController.Player.Crouch.canceled -= OnCrouchCanceled;
     }
 
     void OnMovementPerformed(InputAction.CallbackContext value)
@@ -69,12 +73,22 @@ public class PlayerInput : MonoBehaviour
 
     void OnJumpPerformed(InputAction.CallbackContext value)
     {
-        playerController.TryJump();
+        pc.TryJump();
     }
 
     void OnDashPerformed(InputAction.CallbackContext value)
     {
         dasher.Dash(movementDirection);
+    }
+
+    void OnCrouchPerformed(InputAction.CallbackContext value)
+    {
+        pc.Crouch();
+    }
+
+    void OnCrouchCanceled(InputAction.CallbackContext value)
+    {
+        pc.Uncrouch();
     }
 
     public Vector2 GetMouseDelta()

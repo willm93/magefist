@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent (typeof (Rigidbody))]
@@ -12,6 +13,13 @@ public class PlayerController : MonoBehaviour
     public float CurrentYSpeed => currentYSpeed;
     public MoveState CurrentMoveState => currentMoveParams.state;
     int stepsSinceLastGrounded;
+
+    [Header("Crouching")]
+    [SerializeField, Range(0f,1f)] float crouchSpeedModifier;
+    [SerializeField, Range(0f,1f)] float crouchYScale = 0.5f;
+    float initYScale;
+    bool crouching, uncrouchQueued;
+
 
     [Header("Jumping")]
     [SerializeField, Range(0f, 25f)] float jumpForce = 5f; 
@@ -55,10 +63,13 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
+
         previousWallNormal = Vector3.zero;
         currentMoveParams = lastMoveStateParams = defaultMoveStateParams;
         desiredSpeed = currentMoveParams.speed;
         moveSpeed = desiredSpeed;
+        initYScale = transform.localScale.y;
+
         OnValidate();
     }
 
@@ -78,6 +89,10 @@ public class PlayerController : MonoBehaviour
         lastMoveStateParams = currentMoveParams;
         currentMoveParams = stateParams;
         moveStateChanged = lastMoveStateParams.state != currentMoveParams.state;
+
+        if (crouching && !currentMoveParams.allowsCrouching)
+            Uncrouch();
+
         OnStateChange?.Invoke(stateParams.state);
     }
 
@@ -86,6 +101,10 @@ public class PlayerController : MonoBehaviour
         lastMoveStateParams = currentMoveParams;
         currentMoveParams = defaultMoveStateParams;
         moveStateChanged = lastMoveStateParams.state != currentMoveParams.state;
+
+        if (crouching && !currentMoveParams.allowsCrouching)
+            Uncrouch();
+
         OnStateChange?.Invoke(MoveState.Default);
     }
 
@@ -114,6 +133,10 @@ public class PlayerController : MonoBehaviour
 
         if (jumpTried) {
             Jump();
+        }
+
+        if (uncrouchQueued) {
+            Uncrouch();
         }
 
         if (OnGround && inputDirection == Vector3.zero) {
@@ -245,7 +268,7 @@ public class PlayerController : MonoBehaviour
 
     void ApplyDrag()
     {
-        if ((OnGround || currentMoveParams.hasDrag) && inputDirection == Vector3.zero) {
+        if ((OnGround || currentMoveParams.hasUngroundedDrag) && inputDirection == Vector3.zero) {
             body.drag = groundDrag;
         }
         else {
@@ -255,29 +278,31 @@ public class PlayerController : MonoBehaviour
 
     void LimitVelocity() 
     {
-        if (currentMoveParams.limitsAirVelocity || OnGround) {
-            if (desiredVelocity.sqrMagnitude > moveSpeed * moveSpeed) {
-                desiredVelocity = desiredVelocity.normalized * moveSpeed;
+        float speedLimit = (crouching && OnGround) ? moveSpeed * crouchSpeedModifier : moveSpeed;
+
+        if (currentMoveParams.limitsAllVelocity || OnGround) {
+            if (desiredVelocity.sqrMagnitude > speedLimit * speedLimit) {
+                desiredVelocity = desiredVelocity.normalized * speedLimit;
             }
         }
         else if (keepingMomentum) {
-            if (currentSpeed > moveSpeed) {
-                desiredVelocity = LimitedXZVelocity();
+            if (currentSpeed > speedLimit) {
+                desiredVelocity = LimitedXZVelocity(speedLimit);
             }
             if (currentYSpeed > momentumStateParams.ySpeed) {
                 desiredVelocity.y = momentumStateParams.ySpeed;
             }
         }
         else {
-            if (currentSpeed > moveSpeed) {
-                desiredVelocity = LimitedXZVelocity();
+            if (currentSpeed > speedLimit) {
+                desiredVelocity = LimitedXZVelocity(speedLimit);
             }
         }
     }
 
-    Vector3 LimitedXZVelocity()
+    Vector3 LimitedXZVelocity(float speedLimit)
     {
-        Vector3 limitedVelocity = desiredVelocity.normalized * moveSpeed;
+        Vector3 limitedVelocity = desiredVelocity.normalized * speedLimit;
         return new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
     }
 
@@ -302,6 +327,40 @@ public class PlayerController : MonoBehaviour
             stepsSinceLastJump = 0;
             jumpTried = false;
         }
+    }
+
+    public void Crouch() 
+    {
+        if (!crouching && currentMoveParams.allowsCrouching) {
+            Vector3 scale = transform.localScale;
+            scale.Set(transform.localScale.x, crouchYScale, transform.localScale.z);
+            transform.localScale = scale;
+            if (OnGround)
+                body.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+            crouching = true;
+            uncrouchQueued = false;
+        }
+    }
+
+    public void Uncrouch()
+    {
+        bool canUncrouch = CanUncrouch();
+        if (crouching && canUncrouch) {
+            Vector3 scale = transform.localScale;
+            scale.Set(transform.localScale.x, initYScale, transform.localScale.z);
+            transform.localScale = scale;
+            crouching = false;
+            uncrouchQueued = false;
+        } 
+        else if (crouching && !canUncrouch) {
+            uncrouchQueued = true;
+        }
+    }
+
+    bool CanUncrouch() 
+    {
+        float headroomNeeded = 2 * initYScale - crouchYScale;
+        return !Physics.Raycast(transform.position, Vector3.up, headroomNeeded);
     }
 
     void ClearContacts() 

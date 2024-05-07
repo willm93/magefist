@@ -18,11 +18,13 @@ MonoBehaviour:
   speed: 3
   ySpeed: 0
   speedChangeFactor: 0
-  keepMomentum: 0
+  hasMomentum: 0
+  acceptsMomentum: 0
   hasGravity: 0
-  hasDrag: 1
+  hasUngroundedDrag: 1
   setsAxis: 1
   blocksMoveInput: 0
   resetsJumps: 1
-  limitsAirVelocity: 1
+  limitsAllVelocity: 1
+  allowsCrouching: 0
   normal: {x: 0, y: 0, z: 0}

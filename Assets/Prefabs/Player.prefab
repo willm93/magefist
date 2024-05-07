@@ -168,7 +168,9 @@ MonoBehaviour:
   defaultMoveStateParams: {fileID: 11400000, guid: 5e1c43b7ad6f04b47a70e7f759694ac6,
     type: 2}
   groundDrag: 12.5
-  jumpForce: 9
+  crouchSpeedModifier: 0.5
+  crouchYScale: 0.5
+  jumpForce: 8
   wallJumpForce: 9.6
   stepsTilJumpIgnored: 5
   maxSnapSpeed: 12
@@ -191,7 +193,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveStateParams: {fileID: 11400000, guid: b67184ee23d8be24fb4677a671b8ecc8, type: 2}
-  dashForce: 50
+  dashForce: 55
   dashCoolDown: 1
   dashDuration: 0.08
 --- !u!114 &7410851735155709275
@@ -211,7 +213,7 @@ MonoBehaviour:
   maxClimbAngle: 140
   climbMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 512
 --- !u!1 &3521268547694333317
 GameObject:
   m_ObjectHideFlags: 0
@@ -268,7 +270,7 @@ Transform:
   m_GameObject: {fileID: 5771148233846100241}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.572, z: 0}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

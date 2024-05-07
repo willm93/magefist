@@ -14,15 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 0
   groundAccel: 160
-  airAccel: 25
+  airAccel: 20
   speed: 11
   ySpeed: 0
   speedChangeFactor: 0
-  keepMomentum: 0
+  hasMomentum: 0
+  acceptsMomentum: 1
   hasGravity: 1
-  hasDrag: 0
+  hasUngroundedDrag: 0
   setsAxis: 0
   blocksMoveInput: 0
   resetsJumps: 0
-  limitsAirVelocity: 0
+  limitsAllVelocity: 0
+  allowsCrouching: 1
   normal: {x: 0, y: 0, z: 0}
