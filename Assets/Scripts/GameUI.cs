@@ -3,20 +3,20 @@ using UnityEngine;
 
 public class GameUI : MonoBehaviour
 {
-    [SerializeField] PlayerController playerController;
-    [SerializeField] GameObject climbingUI;
+    [SerializeField] PlayerController pc;
     [SerializeField] GameObject groundUI;
     [SerializeField] GameObject wallUI;
     [SerializeField] TextMeshProUGUI speedUI;
     [SerializeField] TextMeshProUGUI YspeedUI;
+    [SerializeField] TextMeshProUGUI moveStateUI;
 
     void Update()
     {
-        climbingUI.SetActive(playerController.Climbing);
-        groundUI.SetActive(playerController.OnGround);
-        wallUI.SetActive(playerController.OnWall);
+        groundUI.SetActive(pc.OnGround);
+        wallUI.SetActive(pc.OnWall);
 
-        speedUI.SetText("{0:2}\nSpeed", playerController.CurrentSpeed);
-        YspeedUI.SetText("{0:2}\nY Speed", playerController.CurrentYSpeed);
+        speedUI.SetText("{0:2}\nSpeed", pc.CurrentSpeed);
+        YspeedUI.SetText("{0:2}\nY Speed", pc.CurrentYSpeed);
+        moveStateUI.SetText($"{pc.CurrentMoveState}");
     }
 }

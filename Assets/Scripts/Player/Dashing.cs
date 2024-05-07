@@ -1,19 +1,21 @@
 using UnityEngine;
 
-public class AbilityController : MonoBehaviour
+public class Dashing : MonoBehaviour
 {
+    [SerializeField] MoveStateParams moveStateParams;
     [SerializeField, Range(0f, 100f)] float dashForce = 50f, dashCoolDown = 2f, dashDuration = 0.5f;
     float dashCDTimer;
     Vector3 dashDirection;
+    bool moveStateChanged;
 
     PlayerController pc;
     Rigidbody body;
     Transform orientation;
-    
 
     void Awake()
     {
         pc = GetComponent<PlayerController>();
+        pc.OnStateChange += OnStateChange;
         body = GetComponent<Rigidbody>();
         orientation = transform.Find("Orientation");
     }
@@ -22,6 +24,13 @@ public class AbilityController : MonoBehaviour
     {
         if (dashCDTimer > 0)
             dashCDTimer -= Time.deltaTime;
+    }
+
+    void OnStateChange(MoveState state)
+    {
+        if (state != MoveState.Dashing) {
+            moveStateChanged = false;
+        }
     }
 
     public void Dash(Vector3 direction)
@@ -38,22 +47,18 @@ public class AbilityController : MonoBehaviour
 
         dashDirection = Vector3.ProjectOnPlane(dashDirection, pc.GroundNormal);
 
-
-        Invoke(nameof(DelayedDash), 0.025f); //delay until player controller increases move speed to dash speed
-        Invoke(nameof(ResetDash), dashDuration);
-    }
-
-    void DelayedDash() 
-    {
         body.velocity = Vector3.zero;
-        body.useGravity = false;
-        pc.ChangeMoveState(PlayerController.MovementState.Dashing);
+        pc.ChangeMoveState(moveStateParams);
+        moveStateChanged = true;
         body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
+        
+        Invoke(nameof(ResetDash), dashDuration);
     }
 
     void ResetDash()
     {
-        pc.ChangeMoveState(PlayerController.MovementState.Default);
-        body.useGravity = true;
+        if (moveStateChanged) {
+            pc.ResetMoveState();
+        }
     }
 }
