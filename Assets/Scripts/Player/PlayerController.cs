@@ -357,8 +357,14 @@ public class PlayerController : MonoBehaviour
 
     bool CanUncrouch() 
     {
-        float headroomNeeded = 2 * initYScale - crouchYScale;
-        return !Physics.Raycast(transform.position, Vector3.up, headroomNeeded);
+        float distance = 2 * initYScale - crouchYScale - transform.localScale.x * 0.5f;
+        return !Physics.SphereCast(
+            transform.position, 
+            transform.localScale.x * 0.5f - 0.1f, 
+            Vector3.up, 
+            out RaycastHit _hit, 
+            distance
+        );   
     }
 
     void ClearContacts() 

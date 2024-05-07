@@ -15,7 +15,7 @@ MonoBehaviour:
   state: 1
   groundAccel: 0
   airAccel: 0
-  speed: 40
+  speed: 38
   ySpeed: 14
   speedChangeFactor: 55
   hasMomentum: 1
@@ -25,6 +25,6 @@ MonoBehaviour:
   setsAxis: 0
   blocksMoveInput: 1
   resetsJumps: 1
-  limitsAllVelocity: 0
+  limitsAllVelocity: 1
   allowsCrouching: 1
   normal: {x: 0, y: 0, z: 0}
