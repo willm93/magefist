@@ -8,7 +8,7 @@ public class Climbing : MonoBehaviour
     [SerializeField, Range(90f, 170f)] float maxClimbAngle = 140f;
     [SerializeField] LayerMask climbMask = -1;
     float minClimbDot, minClimbFacingAwayDot;
-    bool climbTried, moveStateChanged;
+    bool climbTried, moveStateNeedsReset;
     bool isClimbing;
 
     PlayerController pc;
@@ -34,13 +34,13 @@ public class Climbing : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!moveStateChanged && isClimbing) {
+        if (!moveStateNeedsReset && isClimbing) {
             pc.ChangeMoveState(moveStateParams);
-            moveStateChanged = true;
+            moveStateNeedsReset = true;
         }
-        else if (moveStateChanged && !isClimbing) {
+        else if (moveStateNeedsReset && !isClimbing) {
             pc.ResetMoveState();
-            moveStateChanged = false;
+            moveStateNeedsReset = false;
         }
 
         if (isClimbing) {
@@ -52,7 +52,7 @@ public class Climbing : MonoBehaviour
     {
         if (state != MoveState.Climbing) {
             isClimbing = false;
-            moveStateChanged = false;
+            moveStateNeedsReset = false;
         }
     }
 

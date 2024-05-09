@@ -17,10 +17,12 @@ MonoBehaviour:
   airAccel: 20
   speed: 11
   ySpeed: 0
-  speedChangeFactor: 0
-  hasMomentum: 0
+  groundDecelFactor: 35
+  airDecelFactor: 10
+  hasMomentum: 1
   acceptsMomentum: 1
   hasGravity: 1
+  hasGroundDrag: 1
   hasUngroundedDrag: 0
   setsAxis: 0
   blocksMoveInput: 0

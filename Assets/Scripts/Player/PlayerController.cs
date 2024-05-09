@@ -215,7 +215,9 @@ public class PlayerController : MonoBehaviour
 
         if (moveStateChanged) {
             desiredSpeed = currentMoveParams.speed;
-            if (lastMoveStateParams.hasMomentum && currentMoveParams.acceptsMomentum) {
+            if (lastMoveStateParams.hasMomentum && currentMoveParams.acceptsMomentum &&
+                lastMoveStateParams.speed > currentMoveParams.speed
+            ) {
                 keepingMomentum = true;
                 momentumStateParams = lastMoveStateParams;
                 StopAllCoroutines();
@@ -235,11 +237,12 @@ public class PlayerController : MonoBehaviour
         float time = 0;
         float speedDifference = Mathf.Abs(desiredSpeed - moveSpeed);
         float startValue = moveSpeed;
+        float speedChangeFactor;
 
         while (time < speedDifference) {
             moveSpeed = Mathf.Lerp(startValue, desiredSpeed, time / speedDifference);
-            //speedChangeFactor = OnGround ? momentumStateParams.groundSpeedChangeFactor : momentumStateParams.airSpeedChangeFactor
-            time += Time.deltaTime * momentumStateParams.speedChangeFactor;
+            speedChangeFactor = OnGround ? momentumStateParams.groundDecelFactor : momentumStateParams.airDecelFactor;
+            time += Time.deltaTime * speedChangeFactor;
             yield return null;
         }
 
@@ -266,7 +269,10 @@ public class PlayerController : MonoBehaviour
 
     void ApplyDrag()
     {
-        if ((OnGround || currentMoveParams.hasUngroundedDrag) && inputDirection == Vector3.zero) {
+        if (OnGround && currentMoveParams.hasGroundDrag && inputDirection == Vector3.zero) {
+            body.drag = groundDrag;
+        }
+        else if (currentMoveParams.hasUngroundedDrag) {
             body.drag = groundDrag;
         }
         else {

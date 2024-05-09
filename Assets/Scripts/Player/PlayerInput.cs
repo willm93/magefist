@@ -10,6 +10,7 @@ public class PlayerInput : MonoBehaviour
     PlayerController pc;
     Dashing dasher;
     Climbing climber;
+    ChargePunching charger;
     Vector3 movementDirection;
 
     void Awake()
@@ -18,6 +19,7 @@ public class PlayerInput : MonoBehaviour
         pc = GetComponent<PlayerController>();
         dasher = GetComponent<Dashing>();
         climber = GetComponent<Climbing>();
+        charger = GetComponent<ChargePunching>();
     }
 
     void Update()
@@ -36,6 +38,8 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Dash.performed += OnDashPerformed;
         inputController.Player.Crouch.performed += OnCrouchPerformed;
         inputController.Player.Crouch.canceled += OnCrouchCanceled;
+        inputController.Player.Charge.performed += OnChargePerformed;
+        inputController.Player.Charge.canceled += OnChargeCanceled;
     }
 
     void OnDisable()
@@ -49,6 +53,8 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Dash.performed -= OnDashPerformed;
         inputController.Player.Crouch.performed -= OnCrouchPerformed;
         inputController.Player.Crouch.canceled -= OnCrouchCanceled;
+        inputController.Player.Charge.performed -= OnChargePerformed;
+        inputController.Player.Charge.canceled -= OnChargeCanceled;
     }
 
     void OnMovementPerformed(InputAction.CallbackContext value)
@@ -89,6 +95,16 @@ public class PlayerInput : MonoBehaviour
     void OnCrouchCanceled(InputAction.CallbackContext value)
     {
         pc.Uncrouch();
+    }
+
+    void OnChargePerformed(InputAction.CallbackContext value)
+    {
+        charger.StartCharge();
+    }
+
+    void OnChargeCanceled(InputAction.CallbackContext value)
+    {
+        charger.EndCharge(true);
     }
 
     public Vector2 GetMouseDelta()

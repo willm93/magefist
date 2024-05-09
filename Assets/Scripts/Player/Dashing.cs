@@ -1,12 +1,14 @@
 using UnityEngine;
 
+[RequireComponent(typeof (Rigidbody))]
 public class Dashing : MonoBehaviour
 {
     [SerializeField] MoveStateParams moveStateParams;
     [SerializeField, Range(0f, 100f)] float dashForce = 50f, dashCoolDown = 2f, dashDuration = 0.5f;
     float dashCDTimer;
     Vector3 dashDirection;
-    bool moveStateChanged;
+    bool moveStateNeedsReset;
+    public bool DashOffCooldown => dashCDTimer <= 0;
 
     PlayerController pc;
     Rigidbody body;
@@ -29,7 +31,7 @@ public class Dashing : MonoBehaviour
     void OnStateChange(MoveState state)
     {
         if (state != MoveState.Dashing) {
-            moveStateChanged = false;
+            moveStateNeedsReset = false;
         }
     }
 
@@ -49,7 +51,7 @@ public class Dashing : MonoBehaviour
 
         body.velocity = Vector3.zero;
         pc.ChangeMoveState(moveStateParams);
-        moveStateChanged = true;
+        moveStateNeedsReset = true;
         body.AddForce(dashForce * dashDirection, ForceMode.Impulse);
         
         Invoke(nameof(ResetDash), dashDuration);
@@ -57,7 +59,7 @@ public class Dashing : MonoBehaviour
 
     void ResetDash()
     {
-        if (moveStateChanged) {
+        if (moveStateNeedsReset) {
             pc.ResetMoveState();
         }
     }

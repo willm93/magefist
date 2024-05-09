@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6ee9cb934552b4b4d810424580c5749d, type: 3}
-  m_Name: Dashing
+  m_Name: Punching
   m_EditorClassIdentifier: 
-  state: 1
+  state: 4
   groundAccel: 0
   airAccel: 0
   speed: 38
   ySpeed: 14
-  groundDecelFactor: 55
-  airDecelFactor: 45
+  groundDecelFactor: 25
+  airDecelFactor: 15
   hasMomentum: 1
   acceptsMomentum: 1
   hasGravity: 0
