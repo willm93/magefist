@@ -39,8 +39,10 @@ public class ChargePunching : MonoBehaviour
 
     void OnStateChange(MoveState state)
     {
-        if (state != MoveState.Punching || state != MoveState.Charging)
+        if (state != MoveState.Punching && state != MoveState.Charging) {
             moveStateNeedsReset = false;
+            EndCharge(true);
+        }
     }
 
     public void StartCharge()

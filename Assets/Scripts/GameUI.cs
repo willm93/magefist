@@ -13,6 +13,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI speedElement;
     [SerializeField] TextMeshProUGUI YspeedElement;
     [SerializeField] TextMeshProUGUI moveStateElement;
+    [SerializeField] TextMeshProUGUI momentumCountElement;
     [SerializeField] GameObject chargeElement;
     [SerializeField] RectTransform chargeBar;
 
@@ -26,6 +27,7 @@ public class GameUI : MonoBehaviour
         speedElement.SetText("{0:2}\nSpeed", pc.CurrentSpeed);
         YspeedElement.SetText("{0:2}\nY Speed", pc.CurrentYSpeed);
         moveStateElement.SetText($"{pc.CurrentMoveState}");
+        momentumCountElement.SetText("Momentum: {0:0}", pc.MomentumCount);
 
         chargeElement.SetActive(pc.CurrentMoveState == MoveState.Charging);
         if (chargeElement.activeInHierarchy) {

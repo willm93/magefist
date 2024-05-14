@@ -47,7 +47,9 @@ public class PlayerController : MonoBehaviour
 
     MoveStateParams currentMoveParams, lastMoveStateParams, momentumStateParams;
     float desiredSpeed;
-    bool moveStateChanged, keepingMomentum;
+    bool moveStateChanged; 
+    int momentumCount;
+    public int MomentumCount => momentumCount;
     public Action<MoveState> OnStateChange;
 
     Transform orientation;
@@ -218,36 +220,41 @@ public class PlayerController : MonoBehaviour
             if (lastMoveStateParams.hasMomentum && currentMoveParams.acceptsMomentum &&
                 lastMoveStateParams.speed > currentMoveParams.speed
             ) {
-                keepingMomentum = true;
+                momentumCount += 1;
                 momentumStateParams = lastMoveStateParams;
-                StopAllCoroutines();
-                StartCoroutine(SmoothSpeedChange());
+                StartCoroutine(SmoothDecel(
+                    momentumStateParams.speed, 
+                    desiredSpeed, 
+                    momentumStateParams.groundDecel, 
+                    momentumStateParams.airDecel
+                ));
             }
             else {
+                momentumCount = 0;
                 StopAllCoroutines();
-                keepingMomentum = false;
                 moveSpeed = desiredSpeed;
             }
             moveStateChanged = false;
         }
     }
 
-    IEnumerator SmoothSpeedChange() 
+    IEnumerator SmoothDecel(float initSpeed, float targetSpeed, float groundDecel, float airDecel) 
     {
-        float time = 0;
-        float speedDifference = Mathf.Abs(desiredSpeed - moveSpeed);
-        float startValue = moveSpeed;
-        float speedChangeFactor;
+        float speedDifference = Mathf.Abs(targetSpeed - initSpeed);
+        float speedRemoved = 0f;
+        float deceleration;
 
-        while (time < speedDifference) {
-            moveSpeed = Mathf.Lerp(startValue, desiredSpeed, time / speedDifference);
-            speedChangeFactor = OnGround ? momentumStateParams.groundDecelFactor : momentumStateParams.airDecelFactor;
-            time += Time.deltaTime * speedChangeFactor;
+        while (speedRemoved < speedDifference) {
+            deceleration = OnGround ? groundDecel : airDecel;
+            moveSpeed -= deceleration * Time.deltaTime;
+            speedRemoved += deceleration * Time.deltaTime;
             yield return null;
         }
 
-        moveSpeed = desiredSpeed;
-        keepingMomentum = false;
+        if (momentumCount == 1)
+            moveSpeed = targetSpeed;
+
+        momentumCount -= 1;
     }
 
     void EvaluateInputDirection() 
@@ -289,7 +296,7 @@ public class PlayerController : MonoBehaviour
                 desiredVelocity = desiredVelocity.normalized * speedLimit;
             }
         }
-        else if (keepingMomentum) {
+        else if (momentumCount > 0) {
             if (currentSpeed > speedLimit) {
                 desiredVelocity = LimitedXZVelocity(speedLimit);
             }

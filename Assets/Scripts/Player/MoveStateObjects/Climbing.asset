@@ -15,12 +15,14 @@ MonoBehaviour:
   state: 2
   groundAccel: 45
   airAccel: 45
-  speed: 3
+  speed: 4
   ySpeed: 0
-  speedChangeFactor: 0
+  groundDecelFactor: 0
+  airDecelFactor: 0
   hasMomentum: 0
   acceptsMomentum: 0
   hasGravity: 0
+  hasGroundDrag: 0
   hasUngroundedDrag: 1
   setsAxis: 1
   blocksMoveInput: 0

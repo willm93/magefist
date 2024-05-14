@@ -16,11 +16,11 @@ MonoBehaviour:
   groundAccel: 0
   airAccel: 0
   speed: 38
-  ySpeed: 14
-  groundDecelFactor: 55
-  airDecelFactor: 45
+  ySpeed: 38
+  groundDecel: 60
+  airDecel: 60
   hasMomentum: 1
-  acceptsMomentum: 1
+  acceptsMomentum: 0
   hasGravity: 0
   hasGroundDrag: 0
   hasUngroundedDrag: 0

@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   state: 3
   groundAccel: 160
-  airAccel: 20
-  speed: 4
+  airAccel: 25
+  speed: 6
   ySpeed: 0
-  speedChangeFactor: 0
+  groundDecelFactor: 0
+  airDecelFactor: 0
   hasMomentum: 0
   acceptsMomentum: 1
   hasGravity: 1
