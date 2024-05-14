@@ -37,7 +37,7 @@ public class Dashing : MonoBehaviour
 
     public void Dash(Vector3 direction)
     {
-        if (dashCDTimer > 0) 
+        if (dashCDTimer > 0 || pc.CurrentMoveState == MoveState.Climbing) 
             return;
         else 
             dashCDTimer = dashCoolDown;

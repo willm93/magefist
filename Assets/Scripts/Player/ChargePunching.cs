@@ -47,7 +47,7 @@ public class ChargePunching : MonoBehaviour
 
     public void StartCharge()
     {
-        if (punchCDTimer > 0f)
+        if (punchCDTimer > 0f || pc.CurrentMoveState == MoveState.Climbing)
             return;
             
         charging = true;
