@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     float currentSpeed, currentYSpeed;
     public float CurrentSpeed => currentSpeed; 
     public float CurrentYSpeed => currentYSpeed;
-    public MoveState CurrentMoveState => currentMoveParams.state;
+    public MoveState CurrentMoveState => currentStateParams.state;
     int stepsSinceLastGrounded;
 
     [Header("Crouching")]
@@ -45,11 +45,10 @@ public class PlayerController : MonoBehaviour
     public bool OnWall => wallContactCount > 0 && stepsSinceLastJump > 2;
     public bool JustJumped => stepsSinceLastJump < 2;
 
-    MoveStateParams currentMoveParams, lastMoveStateParams, momentumStateParams;
+    MoveStateParams currentStateParams, lastMoveStateParams, momentumStateParams;
     float desiredSpeed;
-    bool moveStateChanged; 
-    int momentumCount;
-    public int MomentumCount => momentumCount;
+    bool moveStateChanged, keepingMomentum;
+    public bool KeepingMomentum => keepingMomentum;
     public Action<MoveState> OnStateChange;
 
     Transform orientation;
@@ -65,8 +64,8 @@ public class PlayerController : MonoBehaviour
         orientation = transform.Find("Orientation");
 
         previousWallNormal = Vector3.zero;
-        currentMoveParams = lastMoveStateParams = defaultMoveStateParams;
-        desiredSpeed = currentMoveParams.speed;
+        currentStateParams = lastMoveStateParams = defaultMoveStateParams;
+        desiredSpeed = currentStateParams.speed;
         moveSpeed = desiredSpeed;
         initYScale = transform.localScale.y;
 
@@ -86,11 +85,11 @@ public class PlayerController : MonoBehaviour
 
     public void ChangeMoveState(MoveStateParams stateParams) 
     {
-        lastMoveStateParams = currentMoveParams;
-        currentMoveParams = stateParams;
-        moveStateChanged = lastMoveStateParams.state != currentMoveParams.state;
+        lastMoveStateParams = currentStateParams;
+        currentStateParams = stateParams;
+        moveStateChanged = lastMoveStateParams.state != currentStateParams.state;
 
-        if (crouching && !currentMoveParams.allowsCrouching)
+        if (crouching && !currentStateParams.allowsCrouching)
             Uncrouch();
 
         OnStateChange?.Invoke(stateParams.state);
@@ -98,11 +97,11 @@ public class PlayerController : MonoBehaviour
 
     public void ResetMoveState() 
     {
-        lastMoveStateParams = currentMoveParams;
-        currentMoveParams = defaultMoveStateParams;
-        moveStateChanged = lastMoveStateParams.state != currentMoveParams.state;
+        lastMoveStateParams = currentStateParams;
+        currentStateParams = defaultMoveStateParams;
+        moveStateChanged = lastMoveStateParams.state != currentStateParams.state;
 
-        if (crouching && !currentMoveParams.allowsCrouching)
+        if (crouching && !currentStateParams.allowsCrouching)
             Uncrouch();
 
         OnStateChange?.Invoke(MoveState.Default);
@@ -143,7 +142,7 @@ public class PlayerController : MonoBehaviour
             body.useGravity = false;
         }
         else {
-            body.useGravity = currentMoveParams.hasGravity;
+            body.useGravity = currentStateParams.hasGravity;
         }
 
         LimitVelocity();
@@ -157,7 +156,7 @@ public class PlayerController : MonoBehaviour
         stepsSinceLastJump += 1;
         stepsSinceJumpTried += 1;
 
-        if (currentMoveParams.resetsJumps || OnGround || SnapToGround()) {
+        if (currentStateParams.resetsJumps || OnGround || SnapToGround()) {
             stepsSinceLastGrounded = 0;
             previousWallNormal = Vector3.zero;
         }
@@ -201,10 +200,10 @@ public class PlayerController : MonoBehaviour
         zAxis = orientation.forward;
         Vector3 currentNormal = groundNormal;
         
-        if (currentMoveParams.setsAxis) {
-            xAxis = Vector3.Cross(currentMoveParams.normal, Vector3.up);
+        if (currentStateParams.setsAxis) {
+            xAxis = Vector3.Cross(currentStateParams.normal, Vector3.up);
             zAxis = Vector3.up;
-            currentNormal = currentMoveParams.normal;
+            currentNormal = currentStateParams.normal;
         }
 
         xAxis = Vector3.ProjectOnPlane(xAxis, currentNormal).normalized;
@@ -213,15 +212,16 @@ public class PlayerController : MonoBehaviour
 
     void SetSpeedAndAccel()
     { 
-        inputAccel = OnGround ? currentMoveParams.groundAccel : currentMoveParams.airAccel;
+        inputAccel = OnGround ? currentStateParams.groundAccel : currentStateParams.airAccel;
 
         if (moveStateChanged) {
-            desiredSpeed = currentMoveParams.speed;
-            if (lastMoveStateParams.hasMomentum && currentMoveParams.acceptsMomentum &&
-                lastMoveStateParams.speed > currentMoveParams.speed
+            desiredSpeed = currentStateParams.speed;
+            if (lastMoveStateParams.hasMomentum && currentStateParams.acceptsMomentum &&
+                lastMoveStateParams.speed > currentStateParams.speed
             ) {
-                momentumCount += 1;
+                keepingMomentum = true;
                 momentumStateParams = lastMoveStateParams;
+                StopAllCoroutines();
                 StartCoroutine(SmoothDecel(
                     momentumStateParams.speed, 
                     desiredSpeed, 
@@ -230,7 +230,7 @@ public class PlayerController : MonoBehaviour
                 ));
             }
             else {
-                momentumCount = 0;
+                keepingMomentum = false;
                 StopAllCoroutines();
                 moveSpeed = desiredSpeed;
             }
@@ -243,23 +243,26 @@ public class PlayerController : MonoBehaviour
         float speedDifference = Mathf.Abs(targetSpeed - initSpeed);
         float speedRemoved = 0f;
         float deceleration;
+        moveSpeed = initSpeed;
 
         while (speedRemoved < speedDifference) {
             deceleration = OnGround ? groundDecel : airDecel;
             moveSpeed -= deceleration * Time.deltaTime;
             speedRemoved += deceleration * Time.deltaTime;
+
+            if (currentSpeed < moveSpeed - 1f) {
+                speedRemoved += moveSpeed - currentSpeed;
+                moveSpeed = currentSpeed;
+            }
             yield return null;
         }
-
-        if (momentumCount == 1)
-            moveSpeed = targetSpeed;
-
-        momentumCount -= 1;
+        moveSpeed = targetSpeed;
+        keepingMomentum = false;
     }
 
     void EvaluateInputDirection() 
     {
-        if (currentMoveParams.blocksMoveInput)
+        if (currentStateParams.blocksMoveInput)
             return;
         
         float xDelta = inputDirection.x * inputAccel * Time.deltaTime;
@@ -276,10 +279,10 @@ public class PlayerController : MonoBehaviour
 
     void ApplyDrag()
     {
-        if (OnGround && currentMoveParams.hasGroundDrag && inputDirection == Vector3.zero) {
+        if (OnGround && currentStateParams.hasGroundDrag && inputDirection == Vector3.zero) {
             body.drag = groundDrag;
         }
-        else if (currentMoveParams.hasUngroundedDrag) {
+        else if (currentStateParams.hasUngroundedDrag) {
             body.drag = groundDrag;
         }
         else {
@@ -289,19 +292,20 @@ public class PlayerController : MonoBehaviour
 
     void LimitVelocity() 
     {
+        MoveStateParams limitStateParams = keepingMomentum ? momentumStateParams : currentStateParams;
         float speedLimit = (crouching && OnGround) ? moveSpeed * crouchSpeedModifier : moveSpeed;
 
-        if (currentMoveParams.limitsAllVelocity || OnGround) {
-            if (desiredVelocity.sqrMagnitude > speedLimit * speedLimit) {
-                desiredVelocity = desiredVelocity.normalized * speedLimit;
-            }
-        }
-        else if (momentumCount > 0) {
+        if (limitStateParams.hasSeparateYSpeed) {
             if (currentSpeed > speedLimit) {
                 desiredVelocity = LimitedXZVelocity(speedLimit);
             }
-            if (currentYSpeed > momentumStateParams.ySpeed) {
-                desiredVelocity.y = momentumStateParams.ySpeed;
+            if (currentYSpeed > limitStateParams.ySpeed) {
+                desiredVelocity.y = limitStateParams.ySpeed;
+            }
+        }
+        else if (OnGround) {
+            if (desiredVelocity.sqrMagnitude > speedLimit * speedLimit) {
+                desiredVelocity = desiredVelocity.normalized * speedLimit;
             }
         }
         else {
@@ -313,7 +317,7 @@ public class PlayerController : MonoBehaviour
 
     Vector3 LimitedXZVelocity(float speedLimit)
     {
-        Vector3 limitedVelocity = desiredVelocity.normalized * speedLimit;
+        Vector3 limitedVelocity = (desiredVelocity.x * Vector3.right + desiredVelocity.z * Vector3.forward).normalized * speedLimit;
         return new Vector3(limitedVelocity.x, desiredVelocity.y, limitedVelocity.z);
     }
 
@@ -342,7 +346,7 @@ public class PlayerController : MonoBehaviour
 
     public void Crouch() 
     {
-        if (!crouching && currentMoveParams.allowsCrouching) {
+        if (!crouching && currentStateParams.allowsCrouching) {
             Vector3 scale = transform.localScale;
             scale.Set(transform.localScale.x, crouchYScale, transform.localScale.z);
             transform.localScale = scale;

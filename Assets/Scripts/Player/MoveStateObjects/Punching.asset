@@ -15,10 +15,11 @@ MonoBehaviour:
   state: 4
   groundAccel: 0
   airAccel: 0
-  speed: 40
-  ySpeed: 40
-  groundDecel: 5
-  airDecel: 5
+  speed: 35
+  ySpeed: 16
+  groundDecel: 55
+  airDecel: 1
+  momentumSpeed: 22
   hasMomentum: 1
   acceptsMomentum: 1
   hasGravity: 0
@@ -27,6 +28,6 @@ MonoBehaviour:
   setsAxis: 0
   blocksMoveInput: 1
   resetsJumps: 1
-  limitsAllVelocity: 1
+  hasSeparateYSpeed: 1
   allowsCrouching: 1
   normal: {x: 0, y: 0, z: 0}

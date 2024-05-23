@@ -9,6 +9,6 @@ public class MoveStateParams : ScriptableObject
     public float groundAccel, airAccel;
     public float speed, ySpeed, groundDecel, airDecel;
     public bool hasMomentum, acceptsMomentum, hasGravity, hasGroundDrag, hasUngroundedDrag, setsAxis; 
-    public bool blocksMoveInput, resetsJumps, limitsAllVelocity, allowsCrouching;
+    public bool blocksMoveInput, resetsJumps, hasSeparateYSpeed, allowsCrouching;
     public Vector3 normal;
 }

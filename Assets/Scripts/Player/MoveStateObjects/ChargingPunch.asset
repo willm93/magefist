@@ -17,8 +17,9 @@ MonoBehaviour:
   airAccel: 25
   speed: 6
   ySpeed: 0
-  groundDecelFactor: 0
-  airDecelFactor: 0
+  groundDecel: 0
+  airDecel: 0
+  momentumSpeed: 0
   hasMomentum: 0
   acceptsMomentum: 1
   hasGravity: 1
@@ -27,6 +28,6 @@ MonoBehaviour:
   setsAxis: 0
   blocksMoveInput: 0
   resetsJumps: 0
-  limitsAllVelocity: 0
+  hasSeparateYSpeed: 0
   allowsCrouching: 1
   normal: {x: 0, y: 0, z: 0}
