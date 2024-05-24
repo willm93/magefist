@@ -15,11 +15,10 @@ MonoBehaviour:
   state: 4
   groundAccel: 0
   airAccel: 0
-  speed: 35
+  speed: 30
   ySpeed: 16
   groundDecel: 55
-  airDecel: 1
-  momentumSpeed: 22
+  airDecel: 3
   hasMomentum: 1
   acceptsMomentum: 1
   hasGravity: 0

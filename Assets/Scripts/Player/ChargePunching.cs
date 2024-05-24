@@ -6,10 +6,12 @@ public class ChargePunching : MonoBehaviour
     [SerializeField] MoveStateParams chargingStateParams;
     [SerializeField] MoveStateParams punchingStateParams;
     [SerializeField, Range(0f, 100f)] float punchForce = 50f, punchCoolDown = 2f, punchDuration = 0.5f, chargeDuration = 1.5f;
+    [SerializeField, Range(0f, 100f)] float jumpCancelForce = 8f;
     float punchCDTimer, chargePercent;
     public float ChargePercent => chargePercent;
     public bool PunchOffCooldown => punchCDTimer <= 0;
-    bool moveStateNeedsReset, charging;
+    bool moveStateNeedsReset, charging, punching;
+    int stepsPunching;
     Vector3 punchDirection;
 
     PlayerController pc;
@@ -34,6 +36,11 @@ public class ChargePunching : MonoBehaviour
         
         else if (charging && chargePercent >= 1f) 
             EndCharge(false);
+
+        if (punching)
+            stepsPunching += 1;
+        else
+            stepsPunching = 0;
         
     }
 
@@ -42,6 +49,7 @@ public class ChargePunching : MonoBehaviour
         if (state != MoveState.Punching && state != MoveState.Charging) {
             moveStateNeedsReset = false;
             EndCharge(true);
+            ResetPunch();
         }
     }
 
@@ -77,6 +85,7 @@ public class ChargePunching : MonoBehaviour
         body.velocity = Vector3.zero;
         pc.ChangeMoveState(punchingStateParams);
         moveStateNeedsReset = true;
+        punching = true;
         body.AddForce(punchForce * punchDirection, ForceMode.Impulse);
         
         Invoke(nameof(ResetPunch), punchDuration);
@@ -84,7 +93,28 @@ public class ChargePunching : MonoBehaviour
 
     void ResetPunch()
     {
-        if (moveStateNeedsReset)
+        if (moveStateNeedsReset) {
+            moveStateNeedsReset = false;
             pc.ResetMoveState();
+        }
+        punching = false;
+    }
+
+    public void JumpCancel()
+    {
+        if (moveStateNeedsReset && punching && stepsPunching > 2) {
+            pc.ResetMoveState();
+            moveStateNeedsReset = false;
+            punching = false;
+
+            if (!pc.OnGround) {
+                body.velocity = new Vector3(body.velocity.x, 0, body.velocity.z);
+                Vector3 cancelDirection = (Vector3.up + orientation.forward).normalized;
+                body.AddForce(jumpCancelForce * cancelDirection, ForceMode.Impulse);
+            }
+            else {
+                body.AddForce(jumpCancelForce * 0.7f * orientation.forward, ForceMode.Impulse);
+            } 
+        }
     }
 }

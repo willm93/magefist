@@ -12,6 +12,7 @@ public class PlayerInput : MonoBehaviour
     Climbing climber;
     ChargePunching charger;
     Vector3 movementDirection;
+    bool jumpHeld;
 
     void Awake()
     {
@@ -25,6 +26,9 @@ public class PlayerInput : MonoBehaviour
     void Update()
     {
         pc.SetInputDirection(movementDirection);
+        if (jumpHeld) {
+            charger.JumpCancel();
+        }
     }
 
     void OnEnable()
@@ -35,6 +39,7 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.performed += OnClimbPerformed;
         inputController.Player.Climb.canceled += OnClimbCanceled;
         inputController.Player.Jump.performed += OnJumpPerformed;
+        inputController.Player.Jump.canceled += OnJumpCanceled;
         inputController.Player.Dash.performed += OnDashPerformed;
         inputController.Player.Crouch.performed += OnCrouchPerformed;
         inputController.Player.Crouch.canceled += OnCrouchCanceled;
@@ -50,6 +55,7 @@ public class PlayerInput : MonoBehaviour
         inputController.Player.Climb.performed -= OnClimbPerformed;
         inputController.Player.Climb.canceled -= OnClimbCanceled;
         inputController.Player.Jump.performed -= OnJumpPerformed;
+        inputController.Player.Jump.canceled -= OnJumpCanceled;
         inputController.Player.Dash.performed -= OnDashPerformed;
         inputController.Player.Crouch.performed -= OnCrouchPerformed;
         inputController.Player.Crouch.canceled -= OnCrouchCanceled;
@@ -80,6 +86,12 @@ public class PlayerInput : MonoBehaviour
     void OnJumpPerformed(InputAction.CallbackContext value)
     {
         pc.TryJump();
+        jumpHeld = true;
+    }
+
+    void OnJumpCanceled(InputAction.CallbackContext value)
+    {
+        jumpHeld = false;
     }
 
     void OnDashPerformed(InputAction.CallbackContext value)

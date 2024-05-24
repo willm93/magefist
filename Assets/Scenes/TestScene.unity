@@ -14005,8 +14005,9 @@ MonoBehaviour:
     type: 2}
   punchForce: 50
   punchCoolDown: 0.5
-  punchDuration: 1
-  chargeDuration: 1.2
+  punchDuration: 0.65
+  chargeDuration: 1.4
+  jumpCancelForce: 8
 --- !u!1001 &1817013026
 PrefabInstance:
   m_ObjectHideFlags: 0
